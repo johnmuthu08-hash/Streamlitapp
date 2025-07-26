@@ -87,8 +87,8 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
               "data-testid": "stPopoverBody",
             },
             style: () => ({
-              marginRight: theme.spacing.lg,
-              marginBottom: theme.spacing.lg,
+              // Nudge the dropdown menu by 1px so the focus state doesn't get cut off
+              marginTop: theme.spacing.px,
 
               maxHeight: "70vh",
               overflow: "auto",
@@ -105,25 +105,28 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
               borderBottomRightRadius: theme.radii.xl,
               borderBottomLeftRadius: theme.radii.xl,
 
-              borderLeftWidth: theme.sizes.borderWidth,
-              borderRightWidth: theme.sizes.borderWidth,
-              borderTopWidth: theme.sizes.borderWidth,
-              borderBottomWidth: theme.sizes.borderWidth,
-
               paddingRight: `calc(${theme.spacing.twoXL} - ${theme.sizes.borderWidth})`, // 1px to account for border.
               paddingLeft: `calc(${theme.spacing.twoXL} - ${theme.sizes.borderWidth})`,
               paddingBottom: `calc(${theme.spacing.twoXL} - ${theme.sizes.borderWidth})`,
               paddingTop: `calc(${theme.spacing.twoXL} - ${theme.sizes.borderWidth})`,
 
-              borderLeftStyle: "solid",
-              borderRightStyle: "solid",
-              borderTopStyle: "solid",
-              borderBottomStyle: "solid",
-
-              borderLeftColor: theme.colors.borderColor,
-              borderRightColor: theme.colors.borderColor,
-              borderTopColor: theme.colors.borderColor,
-              borderBottomColor: theme.colors.borderColor,
+              // Only apply border styles in dark mode
+              ...(lightBackground
+                ? {}
+                : {
+                    borderLeftWidth: theme.sizes.borderWidth,
+                    borderRightWidth: theme.sizes.borderWidth,
+                    borderTopWidth: theme.sizes.borderWidth,
+                    borderBottomWidth: theme.sizes.borderWidth,
+                    borderLeftStyle: "solid",
+                    borderRightStyle: "solid",
+                    borderTopStyle: "solid",
+                    borderBottomStyle: "solid",
+                    borderLeftColor: theme.colors.borderColor,
+                    borderRightColor: theme.colors.borderColor,
+                    borderTopColor: theme.colors.borderColor,
+                    borderBottomColor: theme.colors.borderColor,
+                  }),
 
               boxShadow: lightBackground
                 ? "0px 4px 16px rgba(0, 0, 0, 0.16)"

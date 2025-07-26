@@ -45,6 +45,7 @@ import {
   StyledWidgetLabelHelp,
   WidgetLabel,
 } from "~lib/components/widgets/BaseWidget"
+import { hasLightBackgroundColor } from "~lib/theme"
 import { useEmotionTheme } from "~lib/hooks/useEmotionTheme"
 import { isMobile } from "~lib/util/isMobile"
 
@@ -103,6 +104,7 @@ const Selectbox: React.FC<Props> = ({
   acceptNewOptions,
 }) => {
   const theme = useEmotionTheme()
+  const lightBackground = hasLightBackgroundColor(theme)
   const isInSidebar = useContext(IsSidebarContext)
 
   const [value, setValue] = useState<string | null>(propValue)
@@ -288,6 +290,10 @@ const Selectbox: React.FC<Props> = ({
                 Body: {
                   style: () => ({
                     marginTop: theme.spacing.px,
+                    // Only show border in dark mode
+                    border: lightBackground
+                      ? "none"
+                      : `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
                   }),
                 },
               },

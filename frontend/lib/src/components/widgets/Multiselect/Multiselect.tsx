@@ -38,6 +38,7 @@ import {
   WidgetLabel,
 } from "~lib/components/widgets/BaseWidget"
 import { StyledUISelect } from "~lib/components/widgets/Multiselect/styled-components"
+import { hasLightBackgroundColor } from "~lib/theme"
 import { useEmotionTheme } from "~lib/hooks/useEmotionTheme"
 import {
   getSelectPlaceholder,
@@ -100,6 +101,7 @@ const Multiselect: FC<Props> = props => {
   const { element, widgetMgr, fragmentId } = props
 
   const theme = useEmotionTheme()
+  const lightBackground = hasLightBackgroundColor(theme)
   const isInSidebar = useContext(IsSidebarContext)
   const [value, setValueWithSource] = useBasicWidgetState<
     MultiselectValue,
@@ -285,6 +287,10 @@ const Multiselect: FC<Props> = props => {
                   Body: {
                     style: () => ({
                       marginTop: theme.spacing.px,
+                      // Only show border in dark mode
+                      border: lightBackground
+                        ? "none"
+                        : `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
                     }),
                   },
                 },

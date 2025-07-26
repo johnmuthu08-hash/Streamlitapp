@@ -91,6 +91,7 @@ function DateInput({
   fragmentId,
 }: Props): ReactElement {
   const theme = useEmotionTheme()
+  const lightBackground = hasLightBackgroundColor(theme)
   const isInSidebar = useContext(IsSidebarContext)
 
   /**
@@ -264,6 +265,10 @@ function DateInput({
                 Body: {
                   style: {
                     marginTop: theme.spacing.px,
+                    // Only show border in dark mode
+                    border: lightBackground
+                      ? "none"
+                      : `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
                   },
                 },
               },

@@ -244,7 +244,10 @@ function FormattingMenu({
             paddingLeft: "0 !important",
             paddingRight: "0 !important",
             backgroundColor: "transparent",
-            border: `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
+            // Only show border in dark mode
+            border: hasLightBackgroundColor(theme)
+              ? "none"
+              : `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
           },
         },
         Inner: {

@@ -25,6 +25,7 @@ import {
   BaseButtonKind,
   convertRemToPx,
   EmotionTheme,
+  hasLightBackgroundColor,
   Icon,
   IGuestToHostMessage,
   IMenuItem,
@@ -201,7 +202,9 @@ function buildMenuItemComponent(
 }
 
 const SubMenu = (props: SubMenuProps): ReactElement => {
-  const { colors, sizes, spacing } = useEmotionTheme()
+  const theme = useEmotionTheme()
+  const { colors, sizes, spacing } = theme
+  const lightBackground = hasLightBackgroundColor(theme)
   const StyledMenuItemType = props.isDevMenu ? StyledDevItem : StyledCoreItem
 
   return (
@@ -231,7 +234,12 @@ const SubMenu = (props: SubMenuProps): ReactElement => {
             ":focus": {
               outline: "none",
             },
-            border: `${sizes.borderWidth} solid ${colors.borderColor}`,
+            // Only show border in dark mode
+            border: lightBackground
+              ? "none"
+              : `${sizes.borderWidth} solid ${colors.borderColor}`,
+            // Remove box shadow to avoid double shadow with the popover
+            boxShadow: "none",
           },
         },
       }}

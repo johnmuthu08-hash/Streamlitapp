@@ -38,6 +38,7 @@ import {
   isNullOrUndefined,
   labelVisibilityProtoValueToEnum,
 } from "~lib/util/utils"
+import { hasLightBackgroundColor } from "~lib/theme"
 import { useEmotionTheme } from "~lib/hooks/useEmotionTheme"
 
 import { StyledClearIconContainer } from "./styled-components"
@@ -71,6 +72,7 @@ function TimeInput({
 
   const clearable = isNullOrUndefined(element.default) && !disabled
   const theme = useEmotionTheme()
+  const lightBackground = hasLightBackgroundColor(theme)
 
   const selectOverrides = {
     Select: {
@@ -143,6 +145,10 @@ function TimeInput({
                 Body: {
                   style: () => ({
                     marginTop: theme.spacing.px,
+                    // Only show border in dark mode
+                    border: lightBackground
+                      ? "none"
+                      : `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
                   }),
                 },
               },

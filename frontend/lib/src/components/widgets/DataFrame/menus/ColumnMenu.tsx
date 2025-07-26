@@ -309,7 +309,10 @@ function ColumnMenu({
         },
         Inner: {
           style: {
-            border: `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
+            // Only show border in dark mode
+            border: hasLightBackgroundColor(theme)
+              ? "none"
+              : `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
             backgroundColor: hasLightBackgroundColor(theme)
               ? colors.bgColor
               : colors.secondaryBg,
