@@ -87,7 +87,7 @@ export const StyledSummary = styled.summary<StyledSummaryProps>(
     "&:focus-visible": {
       boxShadow: `0 0 0 0.2rem ${transparentize(theme.colors.primary, 0.5)}`,
     },
-    fontSize: "inherit",
+    fontSize: theme.fontSizes.sm,
     paddingLeft: theme.spacing.md,
     paddingRight: theme.spacing.md,
     paddingTop: theme.spacing.twoXS,

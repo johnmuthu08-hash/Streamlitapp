@@ -99,7 +99,7 @@ export const StyledBaseButton = styled.button<RequiredBaseButtonProps>(
       margin: theme.spacing.none,
       lineHeight: theme.lineHeights.base,
       textTransform: "none",
-      fontSize: "inherit",
+      fontSize: theme.fontSizes.sm,
       fontFamily: "inherit",
       color: "inherit",
       width: containerWidth ? "100%" : "auto",
@@ -248,8 +248,8 @@ const StyledButtonGroupBaseButton = styled(
     fontSize: theme.fontSizes.sm,
     lineHeight: theme.lineHeights.base,
     fontWeight: theme.fontWeights.normal,
-    height: theme.sizes.largeLogoHeight,
-    minHeight: theme.sizes.largeLogoHeight,
+    height: theme.sizes.minElementHeight,
+    minHeight: theme.sizes.minElementHeight,
     maxWidth: theme.sizes.contentMaxWidth,
 
     // show pills with long text in single line and use ellipsis for overflow

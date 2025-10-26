@@ -265,12 +265,7 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
             {showUserIcon && <ExpanderIcon icon={element.icon} />}
 
             <StyledSummaryLabelWrapper>
-              <StreamlitMarkdown
-                source={label}
-                allowHTML={false}
-                isLabel
-                largerLabel
-              />
+              <StreamlitMarkdown source={label} allowHTML={false} isLabel />
             </StyledSummaryLabelWrapper>
           </StyledSummaryHeading>
         </StyledSummary>

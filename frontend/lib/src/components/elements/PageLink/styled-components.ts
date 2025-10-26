@@ -90,6 +90,7 @@ export interface StyledNavLinkTextProps {
 
 export const StyledNavLinkText = styled.span<StyledNavLinkTextProps>(
   ({ disabled, theme }) => ({
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.bodyText,
     overflow: "hidden",
     whiteSpace: "nowrap",

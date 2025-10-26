@@ -90,7 +90,6 @@ function PageLink(props: Readonly<Props>): ReactElement {
                 allowHTML={false}
                 isLabel
                 boldLabel={isCurrentPage}
-                largerLabel
                 disableLinks
               />
             </StyledNavLinkText>

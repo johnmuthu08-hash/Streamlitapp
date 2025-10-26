@@ -81,6 +81,7 @@ export const StyledBaseLinkButton = styled.a<RequiredBaseLinkButtonProps>(
       minHeight: theme.sizes.minElementHeight,
       margin: 0,
       lineHeight: theme.lineHeights.base,
+      fontSize: theme.fontSizes.sm,
       color: theme.colors.primary,
       textDecoration: "none",
       width: containerWidth ? "100%" : "auto",

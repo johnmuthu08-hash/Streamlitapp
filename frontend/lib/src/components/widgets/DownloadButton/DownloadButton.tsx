@@ -96,7 +96,7 @@ function DownloadButton(props: Props): ReactElement {
           onClick={handleDownloadClick}
           containerWidth={true}
         >
-          <DynamicButtonLabel icon={icon} label={label} />
+          <DynamicButtonLabel icon={icon} label={label} useSmallerFont />
         </BaseButton>
       </BaseButtonTooltip>
     </div>

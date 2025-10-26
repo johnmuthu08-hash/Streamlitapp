@@ -31,7 +31,7 @@ export const sizes = {
   // Used for checkboxes/toggle
   smallElementHeight: "1.5rem",
   // min height used for most input widgets
-  minElementHeight: "2.5rem",
+  minElementHeight: "2.25rem",
   // min height for larger input widgets like text area and audio input
   largestElementHeight: "4.25rem",
   smallLogoHeight: "1.25rem",
@@ -44,7 +44,7 @@ export const sizes = {
   appStatusMaxWidth: "20rem",
   spinnerSize: "1.375rem",
   spinnerThickness: "0.125rem",
-  tabHeight: "2.5rem",
+  tabHeight: "2.25rem",
   // Min width used for popover and dialog:
   minPopupWidth: "20rem",
   maxTooltipHeight: "18.75rem",
@@ -53,7 +53,7 @@ export const sizes = {
   clearIconSize: "1.5em",
   numberInputControlsWidth: "2rem",
   emptyDropdownHeight: "5.625rem",
-  dropdownItemHeight: "2.5rem",
+  dropdownItemHeight: "2.25rem",
   maxDropdownHeight: "18.75rem",
   appDefaultBottomPadding: "3.5rem",
   defaultMapHeight: "31.25rem",

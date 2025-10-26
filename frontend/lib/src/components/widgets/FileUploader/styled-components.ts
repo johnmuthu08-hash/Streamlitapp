@@ -63,6 +63,7 @@ export const StyledFileDropzoneInstructionsFileUploaderIcon = styled.span(
 export const StyledFileDropzoneInstructionsText = styled.span<{
   disabled?: boolean
 }>(({ theme, disabled }) => ({
+  fontSize: theme.fontSizes.sm,
   color: disabled ? theme.colors.fadedText40 : theme.colors.bodyText,
 }))
 
@@ -123,6 +124,7 @@ export const StyledUploadedFileName = styled.div<{ disabled?: boolean }>(
   ({ theme, disabled }) => ({
     marginRight: theme.spacing.sm,
     marginBottom: theme.spacing.twoXS,
+    fontSize: theme.fontSizes.sm,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",

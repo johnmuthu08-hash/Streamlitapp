@@ -106,12 +106,14 @@ function TimeInput({
               paddingLeft: theme.spacing.md,
               paddingBottom: theme.spacing.sm,
               paddingTop: theme.spacing.sm,
+              fontSize: theme.fontSizes.sm,
             }),
           },
 
           SingleValue: {
             style: {
               fontWeight: theme.fontWeights.normal,
+              fontSize: theme.fontSizes.sm,
             },
             props: {
               "data-testid": "stTimeInputTimeDisplay",

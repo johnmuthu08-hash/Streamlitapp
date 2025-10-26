@@ -151,7 +151,11 @@ const Popover: React.FC<React.PropsWithChildren<PopoverProps>> = ({
               containerWidth={true}
               onClick={() => setOpen(!open)}
             >
-              <DynamicButtonLabel icon={element.icon} label={element.label} />
+              <DynamicButtonLabel
+                icon={element.icon}
+                label={element.label}
+                useSmallerFont
+              />
               <StyledPopoverButtonIcon>
                 <StyledIcon
                   as={open ? ExpandLess : ExpandMore}

@@ -41,6 +41,7 @@ export const StyledSpinnerText = styled.div(({ theme }) => ({
   display: "flex",
   gap: theme.spacing.sm,
   alignItems: "baseline",
+  fontSize: theme.fontSizes.sm,
 }))
 
 // TODO: Maybe move this to `theme/consts.ts`, see

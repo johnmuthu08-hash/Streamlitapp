@@ -438,6 +438,7 @@ function ChatInput({
                   },
                   style: {
                     fontWeight: theme.fontWeights.normal,
+                    fontSize: theme.fontSizes.sm,
                     lineHeight: theme.lineHeights.inputWidget,
                     "::placeholder": {
                       color: theme.colors.fadedText60,

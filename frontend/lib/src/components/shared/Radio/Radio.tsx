@@ -218,12 +218,7 @@ function Radio({
               },
             }}
           >
-            <StreamlitMarkdown
-              source={option}
-              allowHTML={false}
-              isLabel
-              largerLabel
-            />
+            <StreamlitMarkdown source={option} allowHTML={false} isLabel />
             {hasCaptions && (
               <StreamlitMarkdown
                 source={spacerNeeded(captions[index])}

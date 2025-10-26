@@ -216,7 +216,6 @@ function Checkbox({
             source={element.label}
             allowHTML={false}
             isLabel
-            largerLabel
           />
           {element.help && (
             <StyledWidgetLabelHelpInline color={color}>

@@ -29,6 +29,7 @@ export const StyledMessageType = styled.span(({ theme }) => ({
 
 export const StyledStackTraceTitle = styled.div(({ theme }) => ({
   marginBottom: theme.spacing.sm,
+  fontSize: theme.fontSizes.md,
 }))
 
 // This extra div makes sure that we also have a padding on the right side of the stack

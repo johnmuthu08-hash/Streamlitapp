@@ -25,6 +25,7 @@ import { StyledCode } from "~lib/components/elements/CodeBlock/styled-components
 import AlertContainer, { Kind } from "~lib/components/shared/AlertContainer"
 import { StyledStackTrace } from "~lib/components/shared/ErrorElement/styled-components"
 import StreamlitMarkdown from "~lib/components/shared/StreamlitMarkdown"
+import styled from "@emotion/styled"
 import { useCopyToClipboard } from "~lib/hooks/useCopyToClipboard"
 import { notNullOrUndefined } from "~lib/util/utils"
 
@@ -62,6 +63,10 @@ function isNonEmptyString(value: string | null | undefined): boolean {
   return notNullOrUndefined(value) && value !== ""
 }
 
+const StyledExceptionMarkdown = styled.div(({ theme }) => ({
+  fontSize: theme.fontSizes.md,
+}))
+
 function ExceptionMessage({
   type,
   message,
@@ -77,14 +82,18 @@ function ExceptionMessage({
     if (type.length !== 0) {
       markdown = `**${type}**: ${markdown}`
     }
-    return <StreamlitMarkdown source={markdown} allowHTML={false} />
+    return (
+      <StyledExceptionMarkdown>
+        <StreamlitMarkdown source={markdown} allowHTML={false} />
+      </StyledExceptionMarkdown>
+    )
   }
   return (
-    <>
+    <StyledExceptionMarkdown>
       <StyledMessageType>{type}</StyledMessageType>
       {type.length !== 0 && ": "}
       {isNonEmptyString(message) ? message : null}
-    </>
+    </StyledExceptionMarkdown>
   )
 }
 

@@ -72,7 +72,11 @@ function Spinner({ element }: Readonly<SpinnerProps>): ReactElement {
       <StyledSpinnerContainer>
         <StyledSpinnerIcon size="base" margin="0 md 0 0" padding="0" />
         <StyledSpinnerText>
-          <StreamlitMarkdown source={element.text} allowHTML={false} />
+          <StreamlitMarkdown
+            source={element.text}
+            allowHTML={false}
+            inheritFont
+          />
           {showTime && (
             <StyledSpinnerTimeText>
               {formatTime(elapsedTime)}
