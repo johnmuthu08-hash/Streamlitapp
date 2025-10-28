@@ -84,6 +84,8 @@ message Block {
       STRETCH = 4;
     }
     Align align = 8;
+    bool background = 9;
+    bool shadow = 10;
   }
 
   message Column {

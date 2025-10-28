@@ -32,6 +32,7 @@ import {
   shouldWidthStretch,
 } from "~lib/components/core/Layout/utils"
 import { LibContext } from "~lib/components/core/LibContext"
+import ThemeProvider from "~lib/components/core/ThemeProvider"
 import ChatMessage from "~lib/components/elements/ChatMessage"
 import Dialog from "~lib/components/elements/Dialog"
 import Expander from "~lib/components/elements/Expander"
@@ -42,6 +43,7 @@ import { useEmotionTheme } from "~lib/hooks/useEmotionTheme"
 import { useRequiredContext } from "~lib/hooks/useRequiredContext"
 import { useScrollToBottom } from "~lib/hooks/useScrollToBottom"
 import { ScriptRunState } from "~lib/ScriptRunState"
+import { createTheme } from "~lib/theme"
 import { getElementId, notNullOrUndefined } from "~lib/util/utils"
 
 import ElementNodeRenderer from "./ElementNodeRenderer"
@@ -211,6 +213,8 @@ interface FlexBoxContainerProps extends BaseBlockProps {
 export const FlexBoxContainer = (
   props: FlexBoxContainerProps
 ): ReactElement => {
+  const { activeTheme } = useContext(LibContext)
+
   const direction = getDirectionOfBlock(props.node.deltaBlock)
 
   const activateScrollToBottom = getActivateScrollToBottomBackwardsCompatible(
@@ -241,11 +245,13 @@ export const FlexBoxContainer = (
     flex: "1",
     align: props.node.deltaBlock.flexContainer?.align,
     justify: props.node.deltaBlock.flexContainer?.justify,
+    background: props.node.deltaBlock.flexContainer?.background ?? false,
+    shadow: props.node.deltaBlock.flexContainer?.shadow ?? false,
   }
 
   const userKey = getKeyFromId(props.node.deltaBlock.id)
 
-  return (
+  const flexContainerBlock = (
     <FlexContextProvider direction={direction}>
       <StyledFlexContainerBlock
         {...styles}
@@ -263,6 +269,29 @@ export const FlexBoxContainer = (
       </StyledFlexContainerBlock>
     </FlexContextProvider>
   )
+
+  if (props.node.deltaBlock.flexContainer?.background) {
+    const updatedTheme = createTheme(
+      "Container",
+      {
+        // Change the colors:
+        secondaryBackgroundColor: activeTheme.emotion.colors.bgColor,
+        backgroundColor: activeTheme.emotion.colors.secondaryBg,
+      },
+      activeTheme,
+      false
+    )
+    console.log("updatedTheme", updatedTheme)
+    return (
+      <ThemeProvider
+        theme={updatedTheme.emotion}
+        baseuiTheme={updatedTheme.basewebTheme}
+      >
+        {flexContainerBlock}
+      </ThemeProvider>
+    )
+  }
+  return flexContainerBlock
 }
 
 export interface BlockPropsWithoutWidth extends BaseBlockProps {

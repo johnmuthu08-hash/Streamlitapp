@@ -68,6 +68,8 @@ class LayoutsMixin:
         horizontal_alignment: HorizontalAlignment = "left",
         vertical_alignment: VerticalAlignment = "top",
         gap: Gap | None = "small",
+        background: bool = False,
+        shadow: bool = False,
     ) -> DeltaGenerator:
         """Insert a multi-element container.
 
@@ -181,6 +183,15 @@ class LayoutsMixin:
             between the elements. Elements may have larger gaps in one
             direction if you use a distributed horizontal alignment or fixed
             height.
+
+        background : bool or None
+            Whether to show a background color behind the container. If this is
+            ``False`` (default), no background color is shown. If this is ``True``,
+            the configured secondary background color us used.
+
+        shadow : bool
+            Whether to show a shadow around the container. If this is ``False`` (default), no shadow is shown.
+             If this is ``True``, a box shadow is shown around the container.
 
         Examples
         --------
@@ -310,6 +321,9 @@ class LayoutsMixin:
             block_proto.flex_container.border = True
         else:
             block_proto.flex_container.border = False
+
+        block_proto.flex_container.background = background
+        block_proto.flex_container.shadow = shadow
 
         validate_height(height, allow_content=True)
         block_proto.height_config.CopyFrom(get_height_config(height))

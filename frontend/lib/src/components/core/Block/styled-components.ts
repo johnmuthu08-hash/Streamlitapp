@@ -21,7 +21,11 @@ import styled from "@emotion/styled"
 import { Block as BlockProto, streamlit } from "@streamlit/protobuf"
 
 import { StyledCheckbox } from "~lib/components/widgets/Checkbox/styled-components"
-import { EmotionTheme, STALE_STYLES } from "~lib/theme"
+import {
+  EmotionTheme,
+  hasLightBackgroundColor,
+  STALE_STYLES,
+} from "~lib/theme"
 import { assertNever } from "~lib/util/assertNever"
 
 function translateGapWidth(
@@ -225,6 +229,8 @@ export interface StyledFlexContainerBlockProps {
   align?: BlockProto.FlexContainer.Align | null
   justify?: BlockProto.FlexContainer.Justify | null
   overflow?: React.CSSProperties["overflow"]
+  background?: boolean
+  shadow?: boolean
 }
 
 export const StyledFlexContainerBlock =
@@ -240,12 +246,14 @@ export const StyledFlexContainerBlock =
       align,
       justify,
       overflow,
+      background,
+      shadow,
     }) => {
       let gapWidth
       if (gap !== undefined) {
         gapWidth = translateGapWidth(gap, theme)
       }
-
+      const lightTheme = hasLightBackgroundColor(theme)
       return {
         display: "flex",
         gap: gapWidth,
@@ -258,6 +266,18 @@ export const StyledFlexContainerBlock =
         alignItems: getAlignItems(align),
         justifyContent: getJustifyContent(justify),
         flexWrap: $wrap ? "wrap" : "nowrap",
+        ...(background && {
+          backgroundColor: theme.colors.bgColor,
+          borderRadius: theme.radii.default,
+          padding: `calc(${theme.spacing.lg} - ${theme.sizes.borderWidth})`,
+        }),
+        ...(shadow && {
+          boxShadow: lightTheme
+            ? `0 ${theme.spacing.px} ${theme.spacing.twoXS} rgba(0,0,0,0.15)`
+            : `0 ${theme.spacing.threeXS} ${theme.spacing.xs} rgba(0,0,0,0.4)`,
+          borderRadius: theme.radii.default,
+          padding: `calc(${theme.spacing.lg} - ${theme.sizes.borderWidth})`,
+        }),
         ...(border && {
           border: `${theme.sizes.borderWidth} solid ${theme.colors.borderColor}`,
           borderRadius: theme.radii.default,
