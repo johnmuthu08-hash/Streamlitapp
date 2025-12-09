@@ -298,6 +298,7 @@ class ArrowMixin:
         selection_mode: SelectionMode | Iterable[SelectionMode] = "multi-row",
         row_height: int | None = None,
         placeholder: str | None = None,
+        disable_export: bool = False,
     ) -> DeltaGenerator: ...
 
     @overload
@@ -316,6 +317,7 @@ class ArrowMixin:
         selection_mode: SelectionMode | Iterable[SelectionMode] = "multi-row",
         row_height: int | None = None,
         placeholder: str | None = None,
+        disable_export: bool = False,
     ) -> DataframeState: ...
 
     @gather_metrics("dataframe")
@@ -334,6 +336,7 @@ class ArrowMixin:
         selection_mode: SelectionMode | Iterable[SelectionMode] = "multi-row",
         row_height: int | None = None,
         placeholder: str | None = None,
+        disable_export: bool = False,
     ) -> DeltaGenerator | DataframeState:
         """Display a dataframe as an interactive table.
 
@@ -522,6 +525,16 @@ class ArrowMixin:
             leave a cell empty, use an empty string (``""``). Other common
             values are ``"null"``, ``"NaN"`` and ``"-"``.
 
+        disable_export : bool
+            Whether to disable exporting the data. If this is ``True``, users
+            cannot download the data as a CSV file or copy cells to the
+            clipboard. If this is ``False`` (default), exporting is enabled.
+
+            .. note::
+                This is a convenience feature, not a security control. Technically skilled users
+                can still extract data from the frontend.
+
+
         Returns
         -------
         element or dict
@@ -705,7 +718,7 @@ class ArrowMixin:
 
         if placeholder is not None:
             proto.placeholder = placeholder
-
+        proto.disable_export = disable_export
         proto.editing_mode = ArrowProto.EditingMode.READ_ONLY
 
         has_range_index: bool = False
@@ -783,6 +796,7 @@ class ArrowMixin:
                 is_selection_activated=is_selection_activated,
                 row_height=row_height,
                 placeholder=placeholder,
+                disable_export=disable_export,
             )
 
             serde = DataframeSelectionSerde()
