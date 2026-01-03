@@ -24,7 +24,7 @@ def run_chart_colors_test_app():
     st.html("""
         <style>
             .stMainBlockContainer {
-                padding-top: 4rem;
+                padding-top: 0rem;
             }
         </style>
     """)

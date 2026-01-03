@@ -359,7 +359,7 @@ describe("AppView element", () => {
       it("uses 6rem top padding by default", () => {
         render(<AppView {...getProps({ embedded: false })} />)
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem")
+        expect(style.paddingTop).toEqual("calc(6rem - 3.75rem)")
       })
 
       it("uses 6rem top padding regardless of showPadding", () => {
@@ -367,7 +367,7 @@ describe("AppView element", () => {
           <AppView {...getProps({ embedded: false, showPadding: true })} />
         )
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem")
+        expect(style.paddingTop).toEqual("calc(6rem - 3.75rem)")
       })
 
       it("uses 6rem top padding regardless of showToolbar", () => {
@@ -375,7 +375,7 @@ describe("AppView element", () => {
           <AppView {...getProps({ embedded: false, showToolbar: true })} />
         )
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem")
+        expect(style.paddingTop).toEqual("calc(6rem - 3.75rem)")
       })
 
       it("uses 8rem top padding when top nav is showing (>1 page)", () => {
@@ -394,7 +394,7 @@ describe("AppView element", () => {
           }
         )
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("8rem")
+        expect(style.paddingTop).toEqual("calc(8rem - 3.75rem)")
       })
 
       it("uses 6rem top padding when top nav is not showing (single page)", () => {
@@ -410,7 +410,7 @@ describe("AppView element", () => {
           }
         )
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem")
+        expect(style.paddingTop).toEqual("calc(6rem - 3.75rem)")
       })
 
       it("uses 6rem top padding regardless of sidebar content (hasSidebar does not affect non-embedded)", () => {
@@ -448,7 +448,7 @@ describe("AppView element", () => {
           }
         )
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem") // Should be 6rem, not affected by sidebar
+        expect(style.paddingTop).toEqual("calc(6rem - 3.75rem)")
       })
     })
 
@@ -459,7 +459,7 @@ describe("AppView element", () => {
             <AppView {...getProps({ embedded: true, showPadding: true })} />
           )
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("6rem")
+          expect(style.paddingTop).toEqual("2.25rem")
           expect(style.paddingBottom).toEqual("10rem")
         })
 
@@ -481,7 +481,7 @@ describe("AppView element", () => {
           )
 
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("6rem")
+          expect(style.paddingTop).toEqual("2.25rem")
         })
 
         it("uses 6rem top padding even with top nav (never 8rem for embedded apps)", () => {
@@ -496,7 +496,8 @@ describe("AppView element", () => {
           )
 
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("6rem")
+          // Embedded apps never get 8rem padding; total offset is still ~6rem
+          expect(style.paddingTop).toEqual("2.25rem")
         })
       })
 
@@ -506,7 +507,7 @@ describe("AppView element", () => {
             <AppView {...getProps({ embedded: true, showToolbar: true })} />
           )
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("6rem")
+          expect(style.paddingTop).toEqual("2.25rem")
         })
 
         it("uses 6rem top padding when showToolbar=true regardless of header content", () => {
@@ -527,7 +528,7 @@ describe("AppView element", () => {
           )
 
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("6rem")
+          expect(style.paddingTop).toEqual("2.25rem")
         })
       })
 
@@ -543,7 +544,8 @@ describe("AppView element", () => {
             />
           )
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("6rem")
+          // Combined header + padding still results in ~6rem total offset
+          expect(style.paddingTop).toEqual("2.25rem")
         })
       })
 
@@ -582,7 +584,7 @@ describe("AppView element", () => {
           )
 
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("4.5rem")
+          expect(style.paddingTop).toEqual("0.75rem")
           expect(style.paddingBottom).toEqual("1rem")
         })
 
@@ -608,7 +610,7 @@ describe("AppView element", () => {
           )
 
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("4.5rem")
+          expect(style.paddingTop).toEqual("0.75rem")
           expect(style.paddingBottom).toEqual("1rem")
         })
 
@@ -650,7 +652,7 @@ describe("AppView element", () => {
             }
           )
           const style = getMainBlockContainerStyle()
-          expect(style.paddingTop).toEqual("4.5rem")
+          expect(style.paddingTop).toEqual("0.75rem")
           expect(style.paddingBottom).toEqual("1rem")
         })
 
@@ -709,7 +711,7 @@ describe("AppView element", () => {
         )
 
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem")
+        expect(style.paddingTop).toEqual("2.25rem")
       })
 
       it("prioritizes showToolbar over header content", () => {
@@ -729,7 +731,7 @@ describe("AppView element", () => {
         )
 
         const style = getMainBlockContainerStyle()
-        expect(style.paddingTop).toEqual("6rem")
+        expect(style.paddingTop).toEqual("2.25rem")
       })
     })
   })

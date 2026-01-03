@@ -487,6 +487,10 @@ def test_mobile_sidebar_overlay_visual(
     expect(nav_links).to_have_count(3)
     expect(nav_links.first).to_be_visible()
 
+    # Wait for the sidebar's CSS transition animation to be completed, or else
+    # the snapshot will be flaky
+    app.wait_for_timeout(1000)
+
     # Take screenshot showing sidebar overlaying content
     # Capture the entire viewport to show overlay effect
     assert_snapshot(app, name="st_navigation-mobile_sidebar_overlay_expanded")

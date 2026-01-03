@@ -309,23 +309,6 @@ function AppView(props: AppViewProps): ReactElement {
         </Profiler>
       )}
       <StyledMainContent>
-        <Header
-          hasSidebar={showSidebar}
-          isSidebarOpen={showSidebar && !isSidebarCollapsed}
-          onToggleSidebar={toggleSidebar}
-          navigation={
-            navigationPosition === Navigation.Position.TOP &&
-            shouldShowNavigation(appPages, navSections) ? (
-              <TopNav
-                endpoints={endpoints}
-                widgetsDisabled={widgetsDisabled}
-              />
-            ) : null
-          }
-          rightContent={topRightContent}
-          logoComponent={logoElement}
-          showToolbar={showToolbar}
-        />
         <Component
           tabIndex={0}
           isEmbedded={embedded}
@@ -333,6 +316,23 @@ function AppView(props: AppViewProps): ReactElement {
           className="stMain"
           data-testid="stMain"
         >
+          <Header
+            hasSidebar={showSidebar}
+            isSidebarOpen={showSidebar && !isSidebarCollapsed}
+            onToggleSidebar={toggleSidebar}
+            navigation={
+              navigationPosition === Navigation.Position.TOP &&
+              shouldShowNavigation(appPages, navSections) ? (
+                <TopNav
+                  endpoints={endpoints}
+                  widgetsDisabled={widgetsDisabled}
+                />
+              ) : null
+            }
+            rightContent={topRightContent}
+            logoComponent={logoElement}
+            showToolbar={showToolbar}
+          />
           <Profiler id="Main">
             <StyledAppViewBlockContainer
               className="stMainBlockContainer block-container"
