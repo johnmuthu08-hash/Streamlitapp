@@ -36,8 +36,10 @@ from streamlit.elements.lib.layout_utils import LayoutConfig, Width, validate_wi
 from streamlit.elements.lib.policies import check_widget_policies
 from streamlit.elements.lib.shortcut_utils import normalize_shortcut
 from streamlit.elements.lib.utils import (
+    ButtonLabelVisibility,
     Key,
     compute_and_register_element_id,
+    get_label_visibility_proto_value,
     save_for_app_testing,
     to_key,
 )
@@ -72,6 +74,7 @@ from streamlit.util import in_sidebar
 
 if TYPE_CHECKING:
     from streamlit.delta_generator import DeltaGenerator
+    from streamlit.elements.lib.utils import LabelVisibility
     from streamlit.runtime.state.query_params import QueryParamsInput
 
 FORM_DOCS_INFO: Final = """
@@ -144,6 +147,7 @@ class ButtonMixin:
         icon: str | None = None,
         icon_position: IconPosition = "left",
         disabled: bool = False,
+        label_visibility: ButtonLabelVisibility = "visible",
         use_container_width: bool | None = None,
         width: Width = "content",
         shortcut: str | None = None,
@@ -229,6 +233,11 @@ class ButtonMixin:
         disabled : bool
             An optional boolean that disables the button if set to ``True``.
             The default is ``False``.
+
+        label_visibility : "visible" or "collapsed"
+            The visibility of the label. The default is ``"visible"``. If this
+            is ``"collapsed"``, the label is removed. An ``icon`` is required when
+            using ``label_visibility="collapsed"``.
 
         use_container_width : bool
             Whether to expand the button's width to fill its parent container.
@@ -379,6 +388,7 @@ class ButtonMixin:
             ctx=ctx,
             width=width,
             shortcut=shortcut,
+            label_visibility=label_visibility,
         )
 
     @gather_metrics("download_button")
@@ -1411,6 +1421,7 @@ class ButtonMixin:
         icon: str | None = None,
         icon_position: IconPosition = "left",
         disabled: bool = False,
+        label_visibility: ButtonLabelVisibility = "visible",
         ctx: ScriptRunContext | None = None,
         width: Width = "content",
         shortcut: str | None = None,
@@ -1480,6 +1491,25 @@ class ButtonMixin:
 
         if normalized_shortcut is not None:
             button_proto.shortcut = normalized_shortcut
+
+        # Validate label_visibility without using maybe_raise_label_warnings since
+        # buttons must have different validation rules here.
+        if label_visibility not in ("visible", "collapsed"):
+            raise StreamlitAPIException(
+                "Unsupported `label_visibility` option "
+                f"`'{label_visibility}'`. Valid values are `'visible'` or "
+                "`'collapsed'`."
+            )
+
+        if label_visibility == "collapsed" and icon is None:
+            raise StreamlitAPIException(
+                "Button can only have `label_visibility='collapsed'` if it "
+                "has an `icon` set."
+            )
+
+        button_proto.label_visibility.value = get_label_visibility_proto_value(
+            cast("LabelVisibility", label_visibility)
+        )
 
         serde = ButtonSerde()
 

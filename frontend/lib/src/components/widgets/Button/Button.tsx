@@ -27,6 +27,10 @@ import BaseButton, {
 } from "~lib/components/shared/BaseButton"
 import { mapProtoIconPosition } from "~lib/components/shared/BaseButton/iconPosition"
 import { useRegisterShortcut } from "~lib/hooks/useRegisterShortcut"
+import {
+  LabelVisibilityOptions,
+  labelVisibilityProtoValueToEnum,
+} from "~lib/util/utils"
 import { WidgetStateManager } from "~lib/WidgetStateManager"
 
 export interface Props {
@@ -46,6 +50,11 @@ function Button(props: Props): ReactElement {
   } else if (element.type === "tertiary") {
     kind = BaseButtonKind.TERTIARY
   }
+
+  const labelVisibility = labelVisibilityProtoValueToEnum(
+    element.labelVisibility?.value
+  )
+  const isLabelCollapsed = labelVisibility === LabelVisibilityOptions.Collapsed
 
   const handleTrigger = useCallback(() => {
     if (disabled) {
@@ -81,6 +90,7 @@ function Button(props: Props): ReactElement {
             iconPosition={mapProtoIconPosition(element.iconPosition)}
             label={element.label}
             shortcut={shortcut}
+            isLabelCollapsed={isLabelCollapsed}
           />
         </BaseButton>
       </BaseButtonTooltip>

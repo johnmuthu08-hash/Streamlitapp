@@ -29,7 +29,7 @@ from streamlit.elements.lib.policies import (
     check_cache_replay_rules,
     check_session_state_rules,
 )
-from streamlit.elements.lib.utils import Key, to_key
+from streamlit.elements.lib.utils import ButtonLabelVisibility, Key, to_key
 from streamlit.elements.widgets.button import (
     IconPosition,
     _normalize_icon_position,
@@ -253,6 +253,7 @@ class FormMixin:
         icon: str | None = None,
         icon_position: IconPosition = "left",
         disabled: bool = False,
+        label_visibility: ButtonLabelVisibility = "visible",
         use_container_width: bool | None = None,
         width: Width = "content",
         shortcut: str | None = None,
@@ -353,6 +354,11 @@ class FormMixin:
             the form will override submission behavior with
             ``enter_to_submit=False``.
 
+        label_visibility : "visible" or "collapsed"
+            The visibility of the label. The default is ``"visible"``. If this
+            is ``"collapsed"``, the label is removed, leaving only the icon
+            visible. An ``icon`` is required when using ``label_visibility="collapsed"``.
+
         use_container_width : bool
             Whether to expand the button's width to fill its parent container.
             If ``use_container_width`` is ``False`` (default), Streamlit sizes
@@ -433,6 +439,7 @@ class FormMixin:
             icon=icon,
             icon_position=normalized_icon_position,
             disabled=disabled,
+            label_visibility=label_visibility,
             ctx=ctx,
             width=width,
             key=key,
@@ -452,6 +459,7 @@ class FormMixin:
         icon: str | None = None,
         icon_position: IconPosition = "left",
         disabled: bool = False,
+        label_visibility: ButtonLabelVisibility = "visible",
         ctx: ScriptRunContext | None = None,
         width: Width = "content",
         shortcut: str | None = None,
@@ -470,6 +478,7 @@ class FormMixin:
             icon=icon,
             icon_position=icon_position,
             disabled=disabled,
+            label_visibility=label_visibility,
             ctx=ctx,
             width=width,
             shortcut=shortcut,

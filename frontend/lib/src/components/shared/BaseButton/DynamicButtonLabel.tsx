@@ -26,6 +26,7 @@ import {
   StyledButtonLabel,
   StyledButtonMainLabel,
   StyledButtonShortcut,
+  StyledScreenReaderOnly,
 } from "./styled-components"
 
 export interface DynamicButtonLabelProps {
@@ -35,6 +36,8 @@ export interface DynamicButtonLabelProps {
   useSmallerFont?: boolean
   iconPosition?: "left" | "right"
   shortcut?: string | null
+  /** When true, the label is visually hidden but remains in the DOM for accessibility */
+  isLabelCollapsed?: boolean
 }
 
 export const DynamicButtonLabel = ({
@@ -44,10 +47,21 @@ export const DynamicButtonLabel = ({
   useSmallerFont = false,
   iconPosition = "left",
   shortcut,
+  isLabelCollapsed = false,
 }: DynamicButtonLabelProps): React.ReactElement | null => {
   const displayShortcut = useMemo(() => {
     return formatShortcutForDisplay(shortcut, { isMac: isFromMac() })
   }, [shortcut])
+
+  const labelContent = label ? (
+    <StreamlitMarkdown
+      source={label}
+      allowHTML={false}
+      isLabel
+      largerLabel={!useSmallerFont}
+      disableLinks
+    />
+  ) : null
 
   return (
     <StyledButtonLabel>
@@ -55,14 +69,10 @@ export const DynamicButtonLabel = ({
         {icon && iconPosition === "left" && (
           <DynamicIcon size={iconSize ?? "lg"} iconValue={icon} />
         )}
-        {label && (
-          <StreamlitMarkdown
-            source={label}
-            allowHTML={false}
-            isLabel
-            largerLabel={!useSmallerFont}
-            disableLinks
-          />
+        {isLabelCollapsed ? (
+          <StyledScreenReaderOnly>{labelContent}</StyledScreenReaderOnly>
+        ) : (
+          labelContent
         )}
         {icon && iconPosition === "right" && (
           <DynamicIcon size={iconSize ?? "lg"} iconValue={icon} />

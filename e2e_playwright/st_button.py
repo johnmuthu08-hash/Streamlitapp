@@ -141,3 +141,5 @@ st.button(
     icon_position="right",
     key="icon_right_material",
 )
+
+st.button("Dislike Button", icon=":material/thumb_down:", label_visibility="collapsed")

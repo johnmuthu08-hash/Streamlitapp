@@ -18,7 +18,10 @@ import { screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { vi } from "vitest"
 
-import { Button as ButtonProto } from "@streamlit/protobuf"
+import {
+  Button as ButtonProto,
+  LabelVisibilityMessage,
+} from "@streamlit/protobuf"
 
 import { useRegisterShortcut } from "~lib/hooks/useRegisterShortcut"
 import { render } from "~lib/test_util"
@@ -188,5 +191,52 @@ describe("Button widget", () => {
     onActivate()
 
     expect(props.widgetMgr.setTriggerValue).not.toHaveBeenCalled()
+  })
+
+  describe("label visibility", () => {
+    it("shows label when label_visibility is visible (default)", () => {
+      const props = getProps({ label: "Test Button" })
+      render(<Button {...props} />)
+
+      expect(screen.getByText("Test Button")).toBeVisible()
+    })
+
+    it("shows label when label_visibility is explicitly visible", () => {
+      const props = getProps({
+        label: "Test Button",
+        labelVisibility: {
+          value: LabelVisibilityMessage.LabelVisibilityOptions.VISIBLE,
+        },
+      })
+      render(<Button {...props} />)
+
+      expect(screen.getByText("Test Button")).toBeVisible()
+    })
+
+    it("renders icon with visually hidden label when label_visibility is collapsed", () => {
+      const props = getProps({
+        label: "Test Button",
+        icon: "⚡",
+        labelVisibility: {
+          value: LabelVisibilityMessage.LabelVisibilityOptions.COLLAPSED,
+        },
+      })
+      render(<Button {...props} />)
+
+      // Icon should be visible
+      expect(screen.getByText("⚡")).toBeVisible()
+      // Label should still be in the DOM for accessibility (screen readers)
+      const label = screen.getByText("Test Button")
+      expect(label).toBeInTheDocument()
+      // The parent span should have screen-reader-only styles
+      const srOnlyWrapper = label.closest("span")
+      expect(srOnlyWrapper).toHaveStyle({
+        position: "absolute",
+        width: "1px",
+        height: "1px",
+        overflow: "hidden",
+        clip: "rect(0, 0, 0, 0)",
+      })
+    })
   })
 })
