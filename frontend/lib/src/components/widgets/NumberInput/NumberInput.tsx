@@ -24,6 +24,7 @@ import {
   useState,
 } from "react"
 
+import { ErrorOutline } from "@emotion-icons/material-outlined"
 import { Minus, Plus } from "@emotion-icons/open-iconic"
 import { Input as UIInput } from "baseui/input"
 import { uniqueId } from "lodash-es"
@@ -31,6 +32,8 @@ import { uniqueId } from "lodash-es"
 import { NumberInput as NumberInputProto } from "@streamlit/protobuf"
 
 import Icon, { DynamicIcon, isMaterialIcon } from "~lib/components/shared/Icon"
+import StreamlitMarkdown from "~lib/components/shared/StreamlitMarkdown"
+import Tooltip, { Placement } from "~lib/components/shared/Tooltip"
 import InputInstructions from "~lib/components/shared/InputInstructions/InputInstructions"
 import {
   WidgetLabel,
@@ -155,6 +158,9 @@ const NumberInput: React.FC<Props> = ({
     queryParamBinding,
   })
 
+  // Error state for range validation
+  const [error, setError] = useState<string | null>(null)
+
   // Additional local state for UI interactions
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
@@ -192,11 +198,17 @@ const NumberInput: React.FC<Props> = ({
       value: number | null
       fromUi: boolean
     }) => {
-      // Validate range and show browser validation message if out of range
+      // Validate range and show custom error instead of browser validation popup
       if (notNullOrUndefined(valueArg) && (min > valueArg || valueArg > max)) {
-        inputRef.current?.reportValidity()
+        if (min > valueArg) {
+          setError(`Value must be at least ${min}.`)
+        } else {
+          setError(`Value must be at most ${max}.`)
+        }
         return
       }
+
+      setError(null)
 
       const newValue = valueArg ?? elementDefault ?? null
 
@@ -374,7 +386,7 @@ const NumberInput: React.FC<Props> = ({
         )}
       </WidgetLabel>
       <StyledInputContainer
-        className={isFocused ? "focused" : ""}
+        className={`${isFocused ? "focused" : ""} ${error ? "error" : ""}`}
         data-testid="stNumberInputContainer"
       >
         <UIInput
@@ -391,6 +403,20 @@ const NumberInput: React.FC<Props> = ({
           clearOnEscape={clearable}
           disabled={disabled}
           aria-label={element.label}
+          aria-invalid={!!error}
+          endEnhancer={
+            error && (
+              <Tooltip
+                content={
+                  <StreamlitMarkdown source={error} allowHTML={false} />
+                }
+                placement={Placement.TOP_RIGHT}
+                error
+              >
+                <Icon content={ErrorOutline} size="lg" />
+              </Tooltip>
+            )
+          }
           startEnhancer={
             element.icon && (
               <DynamicIcon
@@ -425,6 +451,12 @@ const NumberInput: React.FC<Props> = ({
                 },
               },
             },
+            EndEnhancer: {
+              style: {
+                color: theme.colors.redTextColor,
+                backgroundColor: theme.colors.transparent,
+              },
+            },
             Input: {
               props: {
                 "data-testid": "stNumberInputField",
@@ -448,6 +480,9 @@ const NumberInput: React.FC<Props> = ({
                 "::placeholder": {
                   color: theme.colors.fadedText60,
                 },
+                ...(error && {
+                  color: theme.colors.redTextColor,
+                }),
               },
             },
             InputContainer: {
@@ -469,6 +504,9 @@ const NumberInput: React.FC<Props> = ({
                 borderBottomWidth: 0,
                 paddingRight: 0,
                 paddingLeft: icon ? theme.spacing.sm : 0,
+                ...(error && {
+                  backgroundColor: theme.colors.redBackgroundColor,
+                }),
               },
             },
             StartEnhancer: {
