@@ -32,9 +32,9 @@ import { uniqueId } from "lodash-es"
 import { NumberInput as NumberInputProto } from "@streamlit/protobuf"
 
 import Icon, { DynamicIcon, isMaterialIcon } from "~lib/components/shared/Icon"
+import InputInstructions from "~lib/components/shared/InputInstructions/InputInstructions"
 import StreamlitMarkdown from "~lib/components/shared/StreamlitMarkdown"
 import Tooltip, { Placement } from "~lib/components/shared/Tooltip"
-import InputInstructions from "~lib/components/shared/InputInstructions/InputInstructions"
 import {
   WidgetLabel,
   WidgetLabelHelpIcon,
