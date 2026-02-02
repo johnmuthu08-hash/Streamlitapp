@@ -37,6 +37,7 @@ import BaseButton, {
   BaseButtonProps,
   BaseButtonSize,
   DynamicButtonLabel,
+  BaseButtonTooltip,
 } from "~lib/components/shared/BaseButton"
 import { StyledButtonGroup } from "~lib/components/shared/BaseButton/styled-components"
 import { Placement } from "~lib/components/shared/Tooltip"
@@ -272,14 +273,19 @@ function createOptionChild(
       kind
     )
     return (
-      <BaseButton
-        {...props}
-        size={size}
-        kind={buttonKind}
+      <BaseButtonTooltip
+        help={option.help ? option.help : undefined}
         containerWidth={containerWidth}
       >
-        {element}
-      </BaseButton>
+        <BaseButton
+          {...props}
+          size={size}
+          kind={buttonKind}
+          containerWidth={containerWidth}
+        >
+          {element}
+        </BaseButton>
+      </BaseButtonTooltip>
     )
   })
 }
