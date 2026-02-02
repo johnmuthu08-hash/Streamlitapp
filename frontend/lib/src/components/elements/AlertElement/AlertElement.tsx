@@ -21,11 +21,16 @@ import { DynamicIcon } from "~lib/components/shared/Icon"
 import StreamlitMarkdown from "~lib/components/shared/StreamlitMarkdown"
 import { useEmotionTheme } from "~lib/hooks/useEmotionTheme"
 
-import { StyledAlertContent, StyledAlertIcon } from "./styled-components"
+import {
+  StyledAlertContent,
+  StyledAlertIcon,
+  StyledAlertTitle,
+} from "./styled-components"
 
 export interface AlertElementProps {
   body: string
   icon?: string
+  title?: string
   kind: Kind
 }
 
@@ -35,6 +40,7 @@ export interface AlertElementProps {
 function AlertElement({
   icon,
   body,
+  title,
   kind,
 }: Readonly<AlertElementProps>): ReactElement {
   const theme = useEmotionTheme()
@@ -59,11 +65,18 @@ function AlertElement({
             </StyledAlertIcon>
           )}
 
-          <StreamlitMarkdown
-            source={body}
-            allowHTML={false}
-            style={markdownWidth}
-          />
+          <div style={markdownWidth}>
+            {title && (
+              <StyledAlertTitle
+                role="heading"
+                aria-level={2}
+                data-testid="stAlertTitle"
+              >
+                {title}
+              </StyledAlertTitle>
+            )}
+            <StreamlitMarkdown source={body} allowHTML={false} />
+          </div>
         </StyledAlertContent>
       </AlertContainer>
     </div>
