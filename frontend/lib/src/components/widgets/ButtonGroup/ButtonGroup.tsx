@@ -300,6 +300,7 @@ function createOptionChild(
         size={size}
         kind={buttonKind}
         containerWidth={containerWidth}
+        disabled={option.disabled || props.disabled}
       >
         {element}
       </BaseButton>
@@ -348,6 +349,10 @@ function ButtonGroup(props: Readonly<Props>): ReactElement {
 
   const onClick = useCallback(
     (_event: React.SyntheticEvent<HTMLButtonElement>, index: number): void => {
+      // Don't handle click if the option is disabled
+      if (options[index]?.disabled) {
+        return
+      }
       const clickedContent = getOptionBaseContent(options[index])
       const newSelected = handleSelection(clickMode, clickedContent, value)
       setValueWithSource({ value: newSelected, fromUi: true })
