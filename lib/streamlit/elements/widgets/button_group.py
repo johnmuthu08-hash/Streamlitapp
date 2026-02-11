@@ -955,33 +955,44 @@ class ButtonGroupMixin:
                 "`selection_mode='single'`."
             )
 
-        # Handle disabled parameter: can be bool, Sequence[bool], or Sequence[Any] (values)
+        # Handle disabled parameter: can be bool, Iterable[bool], or Iterable[Any] (values)
         widget_disabled: bool = False
         disabled_options: Sequence[bool] | None = None
 
         if isinstance(disabled, bool):
             widget_disabled = disabled
-        elif isinstance(disabled, Sequence):
+        elif disabled is not None:
+            # Normalize any non-bool iterable (e.g. list, tuple, set, generator) to a list.
+            try:
+                disabled_seq = convert_anything_to_list(disabled)
+            except Exception as exc:  # noqa: BLE001
+                raise StreamlitAPIException(
+                    "The `disabled` argument must be a boolean, or an iterable of booleans "
+                    "or option values."
+                ) from exc
+
             # Check if it is an empty sequence
-            if len(disabled) == 0:
-                pass  # widget_disabled is already False
+            if len(disabled_seq) == 0:
+                # widget_disabled is already False and disabled_options is None
+                pass
             # Check if it contains booleans or values. We assume that if the first element
             # is a bool, the rest are too (or at least intended to be).
-            elif isinstance(disabled[0], bool):
+            elif isinstance(disabled_seq[0], bool):
                 # Validate that the sequence length matches options length
-                if len(disabled) != len(indexable_options):
+                if len(disabled_seq) != len(indexable_options):
                     raise StreamlitAPIException(
                         f"The `disabled` argument must have the same length as `options`. "
-                        f"Got {len(disabled)} disabled values for {len(indexable_options)} options."
+                        f"Got {len(disabled_seq)} disabled values for "
+                        f"{len(indexable_options)} options."
                     )
-                disabled_options = cast("Sequence[bool]", disabled)
+                disabled_options = cast("Sequence[bool]", disabled_seq)
                 # If all options are disabled, treat as widget disabled
-                widget_disabled = all(disabled)
+                widget_disabled = all(disabled_seq)
             else:
                 # Assume values. Convert to boolean mask.
                 # We need to find indices of these values in indexable_options.
                 try:
-                    indices = check_and_convert_to_indices(indexable_options, disabled)
+                    indices = check_and_convert_to_indices(indexable_options, disabled_seq)
                 except StreamlitAPIException as e:
                     if "default value" in str(e):
                         raise StreamlitAPIException(
