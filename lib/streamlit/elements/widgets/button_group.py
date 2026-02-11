@@ -917,7 +917,7 @@ class ButtonGroupMixin:
         key: Key | None = None,
         default: list[int] | None = None,
         selection_mode: SelectionMode = "single",
-        disabled: bool | Sequence[bool] | Sequence[Any] = False,
+        disabled: bool | Sequence[bool] | Sequence[V] = False,
         style: Literal["pills", "segmented_control"] = "segmented_control",
         format_func: Callable[[V], ButtonGroupProto.Option] | None = None,
         deserializer: WidgetDeserializer[T],
