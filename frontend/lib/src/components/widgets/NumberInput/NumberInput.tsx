@@ -493,6 +493,8 @@ const NumberInput: React.FC<Props> = ({
               style: () => ({
                 borderTopRightRadius: 0,
                 borderBottomRightRadius: 0,
+                // Explicitly specified so error background renders correctly
+                backgroundColor: "transparent",
               }),
             },
             Root: {
