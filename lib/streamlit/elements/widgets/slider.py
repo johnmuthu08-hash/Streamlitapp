@@ -220,8 +220,6 @@ class SliderSerde:
 
 
 class SliderMixin:
-    # If min/max/value/step are not provided, then we return an int.
-    # if ONLY step is provided, then it must be an int and we return an int.
     @overload
     def slider(
         self,
@@ -240,6 +238,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> int: ...
 
     # If min-value or max_value is provided and a numeric type, and value (if provided)
@@ -262,6 +261,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> SliderNumericT: ...
 
     # If value is provided and a sequence of numeric type,
@@ -284,6 +284,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> tuple[SliderNumericT, SliderNumericT]: ...
 
     # If value is provided positionally and a sequence of numeric type,
@@ -306,6 +307,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> tuple[SliderNumericT, SliderNumericT]: ...
 
     # If min-value is provided and a datelike type, and value (if provided)
@@ -328,6 +330,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> SliderDatelikeT: ...
 
     # If max-value is provided and a datelike type, and value (if provided)
@@ -350,6 +353,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> SliderDatelikeT: ...
 
     # If value is provided and a datelike type, return the same datelike type.
@@ -371,6 +375,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> SliderDatelikeT: ...
 
     # If value is provided and a sequence of datelike type,
@@ -395,6 +400,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> tuple[SliderDatelikeT, SliderDatelikeT]: ...
 
     # If value is provided positionally and a sequence of datelike type,
@@ -418,6 +424,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> tuple[SliderDatelikeT, SliderDatelikeT]: ...
 
     # https://github.com/python/mypy/issues/17614
@@ -439,6 +446,7 @@ class SliderMixin:
         disabled: bool = False,
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
+        orientation: str = "horizontal",
     ) -> Any:
         r"""Display a slider widget.
 
@@ -603,6 +611,8 @@ class SliderMixin:
               fixed width. If the specified width is greater than the width of
               the parent container, the width of the widget matches the width
               of the parent container.
+        orientation : "horizontal" or "vertical"
+            The orientation of the slider. Defaults to "horizontal".
 
         Returns
         -------
@@ -668,6 +678,7 @@ class SliderMixin:
             label_visibility=label_visibility,
             width=width,
             ctx=ctx,
+            orientation=orientation,
         )
 
     def _slider(
@@ -688,6 +699,7 @@ class SliderMixin:
         label_visibility: LabelVisibility = "visible",
         width: WidthWithoutContent = "stretch",
         ctx: ScriptRunContext | None = None,
+        orientation: str = "horizontal"
     ) -> SliderReturn:
         key = to_key(key)
 
@@ -964,6 +976,17 @@ class SliderMixin:
         # decimals and/or use some heuristics for floats.
 
         slider_proto = SliderProto()
+
+        # Validate and map orientation
+        if orientation == "vertical":
+            slider_proto.orientation = SliderProto.Orientation.VERTICAL
+        elif orientation == "horizontal":
+            slider_proto.orientation = SliderProto.Orientation.HORIZONTAL
+        else:
+            raise StreamlitAPIException(
+                f"Slider orientation must be 'horizontal' or 'vertical'. Got '{orientation}'."
+            )
+
         slider_proto.type = SliderProto.Type.SLIDER
         slider_proto.id = element_id
         slider_proto.label = label
@@ -1002,7 +1025,6 @@ class SliderMixin:
         )
 
         if widget_state.value_changed:
-            # Min/Max bounds checks when the value is updated.
             serialized_values = serde.serialize(widget_state.value)
             slider_min = slider_proto.min
             slider_max = slider_proto.max
@@ -1011,7 +1033,6 @@ class SliderMixin:
             ):
                 raise StreamlitAPIException("Slider bounds must be numeric.")
             for serialized_value in serialized_values:
-                # Use the deserialized values for more readable error messages for dates/times
                 deserialized_value = serde.deserialize_single_value(serialized_value)
 
                 if serialized_value < slider_min:
@@ -1024,7 +1045,6 @@ class SliderMixin:
                         value=deserialized_value,
                         max_value=serde.deserialize_single_value(slider_max),
                     )
-
             slider_proto.value[:] = serialized_values
             slider_proto.set_value = True
 

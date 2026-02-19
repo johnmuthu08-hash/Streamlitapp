@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -65,11 +65,14 @@ import {
   StyledThumbWrapper,
 } from "./styled-components"
 
+type Orientation = "horizontal" | "vertical"
+
 interface SliderTickBarProps {
   minLabel: string
   maxLabel: string
   isHovered: boolean
   isDisabled: boolean
+  orientation: Orientation
 }
 
 function SliderTickBar({
@@ -77,12 +80,33 @@ function SliderTickBar({
   maxLabel,
   isHovered,
   isDisabled,
+  orientation,
 }: SliderTickBarProps): ReactElement {
+  const isVertical = orientation === "vertical"
+
   return (
     <StyledSliderTickBar
       data-testid="stSliderTickBar"
       isHovered={isHovered}
       isDisabled={isDisabled}
+      orientation={orientation}
+      style={
+        isVertical
+          ? {
+              display: "flex",
+              flexDirection: "column-reverse", // Min at bottom, Max at top
+              justifyContent: "space-between",
+              alignItems: "flex-end",         // Align text to the right side of the label area
+              position: "absolute",
+              height: "100%",                 // Match the track height
+              width: "40px",                  // Fixed width for labels
+              left: "-50px",                  // Offset to the left of the slider track
+              top: 0,
+              padding: "0 5px",
+              pointerEvents: "none",          // Ensure clicks pass through to the slider
+            }
+          : {}
+      }
     >
       <StreamlitMarkdown
         source={minLabel}
@@ -191,6 +215,11 @@ function Slider({
   const formattedMinValue = formatValue(element.min, element)
   const formattedMaxValue = formatValue(element.max, element)
 
+  const orientation: Orientation =
+    element.orientation === SliderProto.Orientation.VERTICAL
+      ? "vertical"
+      : "horizontal"
+
   // When resetting a form, `value` will change so we need to change `uiValue`
   // to match.
   useEffect(() => {
@@ -263,6 +292,8 @@ function Slider({
         ])
 
         const currentElement = elementRef.current
+        const isVerticalThumb =
+          currentElement.orientation === SliderProto.Orientation.VERTICAL
 
         // We intentionally re-compute the formatted value here from the latest
         // thumb value and the latest element (via `elementRef`) instead of
@@ -287,6 +318,17 @@ function Slider({
               data-testid="stSliderThumbValue"
               disabled={props.$disabled === true}
               ref={thumbValueRefs[thumbIndex]}
+              style={
+                isVerticalThumb
+                  ? {
+                      top: "50%",
+                      left: "35px", // Offset to the right of the thumb
+                      transform: "translateY(-50%)",
+                      right: "auto",
+                      whiteSpace: "nowrap",
+                    }
+                  : {}
+              }
             >
               <StreamlitMarkdown
                 source={formattedValue}
@@ -327,17 +369,36 @@ function Slider({
       thumb1Div,
       thumb2Div,
       thumb1ValueDiv,
-      thumb2ValueDiv
+      thumb2ValueDiv,
+      orientation
     )
   })
 
   // Style that will be applied to BaseWeb's <InnerTrack>.
-  const innerTrackStyle = useCallback(
-    ({ $disabled }: StyleProps) => ({
-      height: theme.spacing.twoXS,
-      ...($disabled ? { background: theme.colors.darkenedBgMix25 } : {}),
-    }),
-    [theme.colors.darkenedBgMix25, theme.spacing.twoXS]
+const innerTrackStyle = useCallback(
+    ({ $disabled }: StyleProps) => {
+      const isVertical = orientation === "vertical"
+      return {
+        // Vertical: thin width, full height. Horizontal: full width, thin height.
+        height: isVertical ? "100%" : theme.spacing.twoXS,
+        width: isVertical ? theme.spacing.twoXS : "100%",
+
+        // Use Streamlit's secondary background color for the track
+        backgroundColor: theme.colors.darkenedBgMix15,
+        borderRadius: theme.radii.default,
+
+        // Critical: ensure the track spine stays in the center of the 120px widget
+        alignSelf: "center",
+        ...($disabled ? { background: theme.colors.darkenedBgMix25 } : {}),
+      }
+    },
+    [
+      theme.colors.darkenedBgMix15,
+      theme.colors.darkenedBgMix25,
+      theme.spacing.twoXS,
+      orientation,
+      theme.radii.default,
+    ]
   )
 
   // Make thumbs not overshoot the slider's track boundaries.
@@ -350,23 +411,56 @@ function Slider({
     forwardRef<HTMLDivElement, StylePropsWithChildren>(
       function renderInnerTrack(props, ref): ReactElement {
         const { children: thumbs, ...newProps } = props
+        const isVertical = orientation === "vertical"
 
         return (
-          <StyledInnerTrackWrapper>
-            {/* Place thumbs inside container with a bit of horiz padding. */}
-            <StyledThumbWrapper ref={ref}>{thumbs}</StyledThumbWrapper>
-            {/* Place track under thumb container, with no padding. */}
+          <StyledInnerTrackWrapper
+            style={
+              isVertical
+                ? {
+                    height: "100%",
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column", // Stays column for vertical
+                    alignItems: "center",     // Centers the children horizontally
+                    justifyContent: "center",
+                    position: "relative",     // Anchors the absolute thumbs
+                  }
+                : {}
+            }
+          >
+            {/* 1. The actual gray track line rendered as the base layer */}
             <UIStyledInnerTrack
               {...newProps}
               style={innerTrackStyle({ $disabled: props.$disabled })}
             />
+
+            {/* 2. Thumbs container overlaid on top of the track */}
+            <StyledThumbWrapper
+              ref={ref}
+              style={
+                isVertical
+                  ? {
+                      height: "100%",
+                      width: "100%",
+                      position: "absolute", // Overlap the track
+                      top: 0,
+                      left: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      pointerEvents: "none", // Clicks pass through to the slider logic
+                    }
+                  : {}
+              }
+            >
+              {thumbs}
+            </StyledThumbWrapper>
           </StyledInnerTrackWrapper>
         )
       }
     ),
-
-    // Only run this on first render.
-    []
+    [orientation, innerTrackStyle]
   )
 
   return (
@@ -376,6 +470,23 @@ function Slider({
       data-testid="stSlider"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      style={
+        orientation === "vertical"
+          ? {
+              display: "flex",
+              flexDirection: "column",
+
+              height: "200px",
+
+              width: "100%",
+
+              alignItems: "center",
+
+              paddingTop: theme.spacing.sm,
+              paddingBottom: theme.spacing.sm,
+            }
+          : {} 
+      }
     >
       <WidgetLabel
         label={element.label}
@@ -396,17 +507,32 @@ function Slider({
         onChange={handleChange}
         onFinalChange={handleFinalChange}
         disabled={disabled}
+        orientation={orientation}
         overrides={{
           Thumb: renderThumb,
           Track: {
             style: {
-              backgroundColor: "none !important",
-              paddingLeft: theme.spacing.none,
-              paddingRight: theme.spacing.none,
-              // Set padding so total height equals minElementHeight (40px)
-              // Total height = paddingTop + innerTrack height + paddingBottom
-              paddingTop: `calc((${theme.sizes.minElementHeight} - ${theme.spacing.twoXS}) / 2)`,
-              paddingBottom: `calc((${theme.sizes.minElementHeight} - ${theme.spacing.twoXS}) / 2)`,
+
+              backgroundColor: "transparent",
+              // Vertical: Pad Left/Right, Zero Top/Bottom
+              paddingLeft:
+                orientation === "vertical"
+                  ? `calc((${theme.sizes.minElementHeight} - ${theme.spacing.twoXS}) / 2)`
+                  : theme.spacing.none,
+              paddingRight:
+                orientation === "vertical"
+                  ? `calc((${theme.sizes.minElementHeight} - ${theme.spacing.twoXS}) / 2)`
+                  : theme.spacing.none,
+
+              // Horizontal: Pad Top/Bottom, Zero Left/Right
+              paddingTop:
+                orientation === "vertical"
+                  ? theme.spacing.none
+                  : `calc((${theme.sizes.minElementHeight} - ${theme.spacing.twoXS}) / 2)`,
+              paddingBottom:
+                orientation === "vertical"
+                  ? theme.spacing.none
+                  : `calc((${theme.sizes.minElementHeight} - ${theme.spacing.twoXS}) / 2)`,
             },
           },
           InnerTrack: renderInnerTrack,
@@ -418,6 +544,7 @@ function Slider({
               maxLabel: formattedMaxValue,
               isHovered: isHovered || isDragging,
               isDisabled: disabled,
+              orientation: orientation,
             },
           },
         }}
@@ -564,8 +691,16 @@ function fixLabelPositions(
   thumb1Div: HTMLDivElement | null,
   thumb2Div: HTMLDivElement | null,
   thumb1ValueDiv: HTMLDivElement | null,
-  thumb2ValueDiv: HTMLDivElement | null
+  thumb2ValueDiv: HTMLDivElement | null,
+  orientation: Orientation
 ): void {
+  // If we are in vertical mode, standard horizontal overflow logic doesn't apply.
+  // We skip this for now to prevent breaking the layout, as vertical collision
+  // handling requires significantly different logic (Y-axis calculation).
+  if (orientation === "vertical") {
+    return
+  }
+
   if (!sliderDiv || !thumb1Div || !thumb1ValueDiv) {
     return
   }
