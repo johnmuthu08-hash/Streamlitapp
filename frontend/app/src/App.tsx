@@ -522,6 +522,8 @@ export class App extends PureComponent<Props, State> {
       disableFullscreenMode: hostConfig.disableFullscreenMode,
       enforceDownloadInNewTab: hostConfig.enforceDownloadInNewTab,
       resourceCrossOriginMode: hostConfig.resourceCrossOriginMode,
+      // Keep sidebar header visible for long sidebars.
+      stickySidebarHeader: hostConfig.stickySidebarHeader,
     })
 
     if (Object.keys(libConfig).length > 0) {
@@ -582,6 +584,7 @@ export class App extends PureComponent<Props, State> {
           blockErrorDialogs,
           setAnonymousCrossOriginPropertyOnMediaElements,
           resourceCrossOriginMode,
+          stickySidebarHeader,
         } = reconciledConfig
 
         const appConfig: AppConfig = {
@@ -602,6 +605,8 @@ export class App extends PureComponent<Props, State> {
             (setAnonymousCrossOriginPropertyOnMediaElements
               ? "anonymous"
               : undefined),
+          // Keep sidebar header visible for long sidebars.
+          stickySidebarHeader,
         }
 
         // Set the metrics configuration:
