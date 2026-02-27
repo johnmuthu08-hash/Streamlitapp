@@ -122,7 +122,7 @@ describe("FileDropzoneInstructions widget", () => {
     expect(screen.queryByText(/JPEG/)).not.toBeInTheDocument()
   })
 
-  it("shows JPG when only JPEG is provided", () => {
+  it("shows JPEG when only JPEG is provided", () => {
     const props = getProps({
       acceptedExtensions: [".jpeg"],
     })
