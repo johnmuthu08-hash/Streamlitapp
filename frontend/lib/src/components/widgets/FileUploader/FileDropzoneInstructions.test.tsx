@@ -111,4 +111,32 @@ describe("FileDropzoneInstructions widget", () => {
 
     expect(screen.getByText("Limit 5KB per file")).toBeVisible()
   })
+
+  it("deduplicates JPG and JPEG extensions, showing only JPG", () => {
+    const props = getProps({
+      acceptedExtensions: [".jpg", ".jpeg", ".png"],
+    })
+    render(<FileDropzoneInstructions {...props} />)
+
+    expect(screen.getByText(/• JPG, PNG/)).toBeInTheDocument()
+    expect(screen.queryByText(/JPEG/)).not.toBeInTheDocument()
+  })
+
+  it("shows JPG when only JPEG is provided", () => {
+    const props = getProps({
+      acceptedExtensions: [".jpeg"],
+    })
+    render(<FileDropzoneInstructions {...props} />)
+
+    expect(screen.getByText(/• JPEG/)).toBeInTheDocument()
+  })
+
+  it("shows JPG when only JPG is provided", () => {
+    const props = getProps({
+      acceptedExtensions: [".jpg"],
+    })
+    render(<FileDropzoneInstructions {...props} />)
+
+    expect(screen.getByText(/• JPG/)).toBeInTheDocument()
+  })
 })

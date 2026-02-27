@@ -54,9 +54,18 @@ const FileDropzoneInstructions = ({
 
   const getFileTypeInfo = (): string | null => {
     if (acceptedExtensions.length) {
-      return ` • ${acceptedExtensions
+      // Remove duplicate display of JPG/JPEG - show only JPG
+      const deduplicatedExtensions = acceptedExtensions
         .map(ext => ext.replace(/^\./, "").toUpperCase())
-        .join(", ")}`
+        .filter((ext, index, arr) => {
+          // If this is JPEG and JPG is also present, filter out JPEG
+          if (ext === "JPEG" && arr.includes("JPG")) {
+            return false
+          }
+          return true
+        })
+
+      return ` • ${deduplicatedExtensions.join(", ")}`
     }
     return null
   }
