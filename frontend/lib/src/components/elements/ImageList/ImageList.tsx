@@ -42,6 +42,64 @@ import {
 
 const LOG = getLogger("ImageList")
 
+/**
+ * Check if a URL points to an SVG image.
+ */
+export function isSvgImage(url: string): boolean {
+  const lower = url.toLowerCase()
+  if (lower.includes("data:image/svg+xml")) {
+    return true
+  }
+  // Strip query string and fragment before checking the extension so that
+  // patterns like ".svg?token=abc" or ".svg#icon" are handled correctly
+  // without false-positiving on URLs where ".svg?" appears mid-path.
+  const pathOnly = lower.split("?")[0].split("#")[0]
+  return pathOnly.endsWith(".svg")
+}
+
+/**
+ * Check whether an SVG data URI encodes an SVG that lacks intrinsic
+ * width/height attributes (i.e. it is "dimensionless"). Only data URIs
+ * can be inspected on the frontend; for remote URLs we conservatively
+ * return true (assume dimensionless) so the full-width fallback applies.
+ */
+export function svgHasIntrinsicSize(url: string): boolean {
+  const lower = url.toLowerCase()
+  if (!lower.includes("data:image/svg+xml")) {
+    // Remote URL - we cannot inspect it, assume it has dimensions
+    // (most SVG files served over HTTP have width/height).
+    return true
+  }
+
+  let svgText: string
+  try {
+    if (lower.includes(";base64,")) {
+      const base64 = url.split(";base64,")[1]
+      svgText = atob(base64)
+    } else {
+      // URL-encoded data URI
+      const dataContent = url.split(",").slice(1).join(",")
+      svgText = decodeURIComponent(dataContent)
+    }
+  } catch {
+    // If decoding fails, assume it has dimensions to avoid breaking layout
+    return true
+  }
+
+  // Extract the opening <svg ...> tag and check for width/height attributes
+  const svgTagMatch = svgText.match(/<svg[^>]*>/i)
+  if (!svgTagMatch) {
+    return true
+  }
+
+  const svgTag = svgTagMatch[0]
+  // Check for width="..." or height="..." attributes (not viewBox)
+  const hasWidth = /\bwidth\s*=/i.test(svgTag)
+  const hasHeight = /\bheight\s*=/i.test(svgTag)
+
+  return hasWidth && hasHeight
+}
+
 export interface ImageListProps {
   endpoints: StreamlitEndpoints
   element: ImageListProto
@@ -146,6 +204,22 @@ function ImageList({
 
   const shouldStretch = widthConfig?.useStretch ?? false
 
+  // @see issue https://github.com/streamlit/streamlit/issues/9098
+  // SVGs without intrinsic width/height attributes render at 0x0 in
+  // useContent mode because the container collapses to zero.
+  // To fix this, we detect dimensionless SVGs (those whose data URI lacks
+  // explicit width and height on the <svg> tag) and expand the outer list
+  // container to full width so the SVG has a rendering context.
+  // In mixed lists (SVG + non-SVG), the list container stretches to full
+  // width, but only the individual dimensionless-SVG containers get
+  // shouldStretch -- non-SVG images and SVGs with intrinsic sizes keep
+  // their natural width.
+  const hasDimensionlessSvg = element.imgs.some(img => {
+    const url = img.url ?? ""
+    return isSvgImage(url) && !svgHasIntrinsicSize(url)
+  })
+  const svgNeedsFullWidth = hasDimensionlessSvg && imageWidth === undefined
+
   const imgStyle: CSSProperties = {}
 
   if (fullScreenHeight && isFullScreen) {
@@ -194,7 +268,7 @@ function ImageList({
       <StyledImageList
         className="stImage"
         data-testid="stImage"
-        shouldStretch={shouldStretch}
+        shouldStretch={shouldStretch || svgNeedsFullWidth}
       >
         {element.imgs.map(
           (iimage, idx): ReactElement => (
@@ -207,7 +281,12 @@ function ImageList({
               imgStyle={imgStyle}
               buildMediaURL={(url: string) => endpoints.buildMediaURL(url)}
               handleImageError={handleImageError}
-              shouldStretch={shouldStretch}
+              shouldStretch={
+                shouldStretch ||
+                (svgNeedsFullWidth &&
+                  isSvgImage((iimage as ImageProto).url ?? "") &&
+                  !svgHasIntrinsicSize((iimage as ImageProto).url ?? ""))
+              }
             />
           )
         )}
