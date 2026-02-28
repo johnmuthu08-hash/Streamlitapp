@@ -527,3 +527,53 @@ class NavigationTest(DeltaGeneratorTestCase):
         )
         page = st.navigation([st.Page("page1.py"), hidden_page, st.Page("page3.py")])
         assert page == hidden_page
+
+    def test_all_external_pages_raises_error(self):
+        """Test that navigation with only external pages raises an error,
+        because at least one non-external page is required for default."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.navigation(
+                [
+                    st.Page("https://example.com", title="Example"),
+                    st.Page("https://docs.streamlit.io", title="Docs"),
+                ]
+            )
+        assert "non-external page" in str(exc_info.value)
+
+    def test_mixed_internal_external_default_is_first_internal(self):
+        """Test that when mixing internal and external pages without explicit default,
+        the first internal page becomes the default (external pages are skipped)."""
+        external_page = st.Page("https://example.com", title="Example")
+        internal_page = st.Page("page1.py")
+        page = st.navigation([external_page, internal_page])
+        assert page == internal_page
+        assert page._default
+
+    def test_external_page_proto_fields(self):
+        """Test that is_external and external_url proto fields are correctly set."""
+        st.navigation(
+            [
+                st.Page("page1.py"),
+                st.Page("https://docs.streamlit.io", title="Docs"),
+            ]
+        )
+        c = self.get_message_from_queue().navigation
+        assert len(c.app_pages) == 2
+        # Internal page
+        assert not c.app_pages[0].is_external
+        assert c.app_pages[0].external_url == ""
+        # External page
+        assert c.app_pages[1].is_external
+        assert c.app_pages[1].external_url == "https://docs.streamlit.io"
+
+    def test_direct_url_to_external_page_falls_back_to_default(self):
+        """Test that when a user navigates directly to an external page's URL path,
+        the default non-external page is returned instead of the external page."""
+        external_page = st.Page("https://example.com", title="Example")
+        internal_page = st.Page("page1.py")
+        # Simulate direct URL access to the external page's url_path
+        self.script_run_ctx.pages_manager.set_script_intent(
+            external_page._script_hash, ""
+        )
+        page = st.navigation([external_page, internal_page])
+        assert page == internal_page

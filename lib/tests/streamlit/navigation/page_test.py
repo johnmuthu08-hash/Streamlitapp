@@ -213,3 +213,145 @@ class StPagesVisibilityTest(DeltaGeneratorTestCase):
         assert "visibility" in str(exc_info.value)
         assert "visible" in str(exc_info.value)
         assert "hidden" in str(exc_info.value)
+
+
+class TestExternalUrlSupport(DeltaGeneratorTestCase):
+    """Test external URL support in st.Page."""
+
+    def test_external_url_requires_title(self):
+        """Test that external URL pages require a title parameter."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://docs.streamlit.io")
+
+        assert "External URL pages require a `title` parameter" in str(exc_info.value)
+
+    def test_external_url_with_title(self):
+        """Test that external URL pages can be created with a title."""
+        page = st.Page("https://docs.streamlit.io", title="Docs")
+        assert page.title == "Docs"
+        assert page.is_external is True
+        assert page.external_url == "https://docs.streamlit.io"
+
+    def test_external_url_with_http(self):
+        """Test that http URLs are also supported."""
+        page = st.Page("http://example.com", title="Example")
+        assert page.is_external is True
+        assert page.external_url == "http://example.com"
+
+    def test_external_url_cannot_be_default(self):
+        """Test that external URL pages cannot be set as default."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://docs.streamlit.io", title="Docs", default=True)
+
+        assert "External URL pages cannot be set as the default page" in str(
+            exc_info.value
+        )
+
+    def test_external_url_with_icon(self):
+        """Test that external URL pages can have icons."""
+        page = st.Page(
+            "https://docs.streamlit.io", title="Docs", icon=":material/open_in_new:"
+        )
+        assert page.icon == ":material/open_in_new:"
+
+    def test_external_url_infers_url_path_from_title(self):
+        """Test that url_path is inferred from title for external URLs."""
+        page = st.Page("https://docs.streamlit.io", title="Streamlit Docs")
+        assert page.url_path == "streamlit_docs"
+
+    def test_external_url_custom_url_path(self):
+        """Test that custom url_path can be set for external URLs."""
+        page = st.Page(
+            "https://docs.streamlit.io", title="Docs", url_path="custom_path"
+        )
+        assert page.url_path == "custom_path"
+
+    def test_external_url_whitespace_padded_url_path(self):
+        """Test that external URL url_path strips leading and trailing whitespace."""
+        page = st.Page(
+            "https://docs.streamlit.io", title="Docs", url_path="  docs  "
+        )
+        assert page.url_path == "docs"
+
+    def test_internal_page_is_not_external(self):
+        """Test that internal pages (file paths) are not marked as external."""
+        with patch("pathlib.Path.is_file", MagicMock(return_value=True)):
+            page = st.Page("page.py")
+            assert page.is_external is False
+            assert page.external_url is None
+
+    def test_callable_page_is_not_external(self):
+        """Test that callable pages are not marked as external."""
+        page = st.Page(lambda: True, title="Test")
+        assert page.is_external is False
+        assert page.external_url is None
+
+    def test_external_url_run_does_nothing(self):
+        """Test that run() on an external URL page does nothing and no code is executed."""
+        page = st.Page("https://docs.streamlit.io", title="Docs")
+        page._can_be_called = True
+
+        # External pages return early in run() without executing any code
+        page.run()
+
+        # After run, _can_be_called should be False
+        assert page._can_be_called is False
+
+    def test_external_url_url_path_sanitization(self):
+        """Test that special characters are sanitized from url_path."""
+        # Test various special characters that should be removed
+        page = st.Page("https://example.com", title="FAQ & Help")
+        assert page.url_path == "faq_help"
+
+        page = st.Page("https://example.com", title="What's New?")
+        assert page.url_path == "whats_new"
+
+        page = st.Page("https://example.com", title="A/B Testing")
+        assert page.url_path == "ab_testing"
+
+        page = st.Page("https://example.com", title="Search #1")
+        assert page.url_path == "search_1"
+
+    def test_external_url_empty_url_path_raises_error(self):
+        """Test that external URL with title that results in empty url_path raises error."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://example.com", title="&#?")
+
+        assert "URL path cannot be empty" in str(exc_info.value)
+
+    def test_external_url_explicit_empty_url_path_raises_error(self):
+        """Test that external URL with explicit empty url_path raises error."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://example.com", title="Docs", url_path="")
+
+        assert "URL path cannot be empty" in str(exc_info.value)
+
+    def test_external_url_slashes_only_url_path_raises_error(self):
+        """Test that external URL with slashes-only url_path raises error."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://example.com", title="Test", url_path="///")
+
+        assert "URL path cannot be empty" in str(exc_info.value)
+
+    def test_external_url_cannot_have_nested_url_path(self):
+        """Test that external URL pages cannot have nested url_path."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://example.com", title="Test", url_path="foo/bar")
+
+        assert "nested path" in str(exc_info.value)
+
+    def test_external_url_empty_title_raises_error(self):
+        """Test that external URL with empty title raises error,
+        even when url_path is explicitly provided."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://example.com", title="", url_path="valid_path")
+
+        assert "title" in str(exc_info.value).lower()
+
+    def test_external_url_whitespace_only_title_raises_error(self):
+        """Test that external URL with whitespace-only title raises error,
+        even when url_path is explicitly provided."""
+        with pytest.raises(StreamlitAPIException) as exc_info:
+            st.Page("https://example.com", title="   ", url_path="valid_path")
+
+        assert "title" in str(exc_info.value).lower()

@@ -343,7 +343,14 @@ def _navigation(
                 default_page = page
 
     if default_page is None:
-        default_page = page_list[0]
+        # Find the first non-external page to be the default
+        non_external_pages = [p for p in page_list if not p.is_external]
+        if not non_external_pages:
+            raise StreamlitAPIException(
+                "At least one non-external page is required. "
+                "External URL pages cannot be the default page."
+            )
+        default_page = non_external_pages[0]
         default_page._default = True
 
     ctx = get_script_run_ctx()
@@ -401,6 +408,9 @@ def _navigation(
             p.section_header = section_header
             p.url_pathname = page.url_path
             p.is_hidden = page._visibility == "hidden"
+            p.is_external = page.is_external
+            if page.external_url:
+                p.external_url = page.external_url
 
     # Inform our page manager about the set of pages we have
     ctx.pages_manager.set_pages(pagehash_to_pageinfo)
@@ -416,6 +426,10 @@ def _navigation(
         ]
         if len(matching_pages) > 0:
             page_to_return = matching_pages[0]
+
+    # External pages cannot be run directly — fall back to the default page
+    if page_to_return and page_to_return.is_external:
+        page_to_return = None
 
     if not page_to_return:
         send_page_not_found(ctx)
