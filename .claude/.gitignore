@@ -25,6 +25,7 @@ skills/*
 !skills/implementing-new-features/
 !skills/addressing-pr-review-comments/
 !skills/creating-pull-requests/
+!skills/updating-internal-docs/
 
 # Allow agents
 !agents/
