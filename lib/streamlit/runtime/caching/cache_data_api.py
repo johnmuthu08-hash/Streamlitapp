@@ -695,6 +695,108 @@ class CacheDataAPI:
             )
         )
 
+    def get_stats(self) -> list[dict[str, Any]]:
+        """Get cache observability statistics for all cached functions.
+
+        For session-scoped caches, statistics are aggregated across all sessions
+        for each function.
+
+        Returns
+        -------
+        list of dict
+            A list of statistics dictionaries, one for each cached function.
+            Each dictionary contains:
+
+            - function_name : str
+                The fully qualified name of the cached function
+            - cache_type : str
+                Always "st.cache_data"
+            - hit_count : int
+                Number of cache hits
+            - miss_count : int
+                Number of cache misses
+            - hit_ratio : float
+                Ratio of hits to total accesses (0.0 to 1.0)
+            - total_execution_time_seconds : float
+                Total time spent executing the function on cache misses
+            - average_execution_time_seconds : float
+                Average execution time per cache miss
+            - last_accessed_timestamp : float
+                Unix timestamp of last cache access
+
+        Examples
+        --------
+        >>> import streamlit as st
+        >>>
+        >>> @st.cache_data
+        ... def expensive_computation(x):
+        ...     return x * 2
+        >>>
+        >>> result = expensive_computation(5)
+        >>> stats = st.cache_data.get_stats()
+        >>> for stat in stats:
+        ...     print(f"{stat['function_name']}: {stat['hit_ratio']:.2%} hit ratio")
+        """
+        from collections import defaultdict
+
+        # Shallow copy cache objects under lock to minimize lock hold time
+        with _data_caches._caches_lock:
+            # Collect all cache instances (shallow copy)
+            all_caches = [
+                cache
+                for session_caches in _data_caches._function_caches.values()
+                for cache in session_caches.values()
+            ]
+
+        # Process stats outside the lock to avoid blocking cache operations
+        aggregated: dict[str, dict[str, Any]] = defaultdict(
+            lambda: {
+                "hit_count": 0,
+                "miss_count": 0,
+                "total_execution_time_seconds": 0.0,
+                "last_accessed_timestamp": 0.0,
+            }
+        )
+
+        for cache in all_caches:
+            obs_stats = cache.get_observability_stats()
+            key = cache.display_name
+            aggregated[key]["hit_count"] += obs_stats["hit_count"]
+            aggregated[key]["miss_count"] += obs_stats["miss_count"]
+            aggregated[key]["total_execution_time_seconds"] += obs_stats[
+                "total_execution_time_seconds"
+            ]
+            aggregated[key]["last_accessed_timestamp"] = max(
+                aggregated[key]["last_accessed_timestamp"],
+                obs_stats["last_accessed_timestamp"],
+            )
+
+        # Convert to list format
+        all_stats = []
+        for function_name, stats in aggregated.items():
+            total_accesses = stats["hit_count"] + stats["miss_count"]
+            all_stats.append(
+                {
+                    "function_name": function_name,
+                    "cache_type": "st.cache_data",
+                    "hit_count": stats["hit_count"],
+                    "miss_count": stats["miss_count"],
+                    "hit_ratio": stats["hit_count"] / total_accesses
+                    if total_accesses > 0
+                    else 0.0,
+                    "total_execution_time_seconds": stats[
+                        "total_execution_time_seconds"
+                    ],
+                    "average_execution_time_seconds": (
+                        stats["total_execution_time_seconds"] / stats["miss_count"]
+                        if stats["miss_count"] > 0
+                        else 0.0
+                    ),
+                    "last_accessed_timestamp": stats["last_accessed_timestamp"],
+                }
+            )
+        return all_stats
+
     @gather_metrics("clear_data_caches")
     def clear(self) -> None:
         """Clear all in-memory and on-disk data caches."""

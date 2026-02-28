@@ -21,6 +21,11 @@ CACHE_MEMORY_FAMILY: Final = "cache_memory_bytes"
 SESSION_EVENTS_FAMILY: Final = "session_events_total"
 SESSION_DURATION_FAMILY: Final = "session_duration_seconds_total"
 ACTIVE_SESSIONS_FAMILY: Final = "active_sessions"
+# Cache observability metric families
+CACHE_HITS_FAMILY: Final = "cache_hits_total"
+CACHE_MISSES_FAMILY: Final = "cache_misses_total"
+CACHE_EXECUTION_TIME_FAMILY: Final = "cache_execution_time_seconds"
+CACHE_LAST_ACCESSED_FAMILY: Final = "cache_last_accessed_timestamp"
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
