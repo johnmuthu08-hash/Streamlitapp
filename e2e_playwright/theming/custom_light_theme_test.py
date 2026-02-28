@@ -155,6 +155,12 @@ def test_theme_preference_persists_on_reload(
     expect(app.get_by_test_id("stMainMenuPopover")).not_to_be_visible()
     wait_for_app_run(app)
 
+    # Wait for dialog to fully disappear and theme CSS to be applied
+    expect(app.get_by_test_id("stDialog")).to_have_count(0)
+
+    # Give a moment for theme CSS to fully stabilize
+    app.wait_for_timeout(300)
+
     assert_snapshot(app, name="persisted_on_reload_before", image_threshold=0.0003)
 
     # Force a full page reload
@@ -174,5 +180,11 @@ def test_theme_preference_persists_on_reload(
     # Close the menu
     app.keyboard.press("Escape")
     expect(app.get_by_test_id("stMainMenuPopover")).not_to_be_visible()
+
+    # Wait for dialog to fully disappear and theme CSS to be applied
+    expect(app.get_by_test_id("stDialog")).to_have_count(0)
+
+    # Give a moment for theme CSS to fully stabilize
+    app.wait_for_timeout(300)
 
     assert_snapshot(app, name="persisted_on_reload_after", image_threshold=0.0003)
