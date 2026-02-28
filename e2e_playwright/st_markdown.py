@@ -537,3 +537,13 @@ Links: [Streamlit](https://streamlit.io) Colors: :red[red] :blue[blue]
 
 Emoji: 🎉 Array: array[index] Dict: dict[key]""",
 )
+
+# Shimmer directive test
+with st.container(key="shimmer_elements"):
+    st.markdown(":shimmer[Loading...]")
+    st.markdown("Normal text before :shimmer[thinking...] and after")
+    st.markdown(":material/hourglass_empty: :shimmer[Please wait...]")
+    # Markdown inside shimmer (e.g., material icons, emoji, styled text)
+    st.markdown(":shimmer[:material/sync: Syncing data...]")
+    st.markdown(":shimmer[:red[Error:] Retrying...]")
+    st.markdown(":shimmer[🔄 Processing **important** task...]")
