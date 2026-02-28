@@ -28,6 +28,7 @@ from streamlit.runtime.state.session_state import (
 from streamlit.runtime.state.session_state_proxy import (
     SessionStateProxy,
     get_session_state,
+    make_session_state_init,
 )
 from streamlit.runtime.state.widgets import register_widget
 
@@ -43,5 +44,6 @@ __all__ = [
     "WidgetCallback",
     "WidgetKwargs",
     "get_session_state",
+    "make_session_state_init",
     "register_widget",
 ]
