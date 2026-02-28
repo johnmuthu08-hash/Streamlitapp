@@ -550,6 +550,27 @@ class ButtonGroupCommandTests(DeltaGeneratorTestCase):
         assert [option.content for option in c.options] == ["Coffee", "Tea", "Water"]
 
     @parameterized.expand(
+        [
+            (st.pills, ["a"], [True, False, False]),
+            (st.pills, ["b"], [False, True, False]),
+            (st.pills, ["a", "c"], [True, False, True]),
+            (st.segmented_control, ["a"], [True, False, False]),
+        ]
+    )
+    def test_disabled_with_values(
+        self,
+        command: Callable,
+        disabled_values: list[str],
+        expected_disabled_status: list[bool],
+    ):
+        "Test that disabled can be passed as a list of values."
+        command("label", ["a", "b", "c"], disabled=disabled_values)
+
+        delta = self.get_delta_from_queue().new_element.button_group
+        assert delta.disabled is False
+        assert [option.disabled for option in delta.options] == expected_disabled_status
+
+    @parameterized.expand(
         get_command_matrix([(None, []), ([], []), (["Tea"], [1]), ("Coffee", [0])])
     )
     def test_default_for_singleselect(
