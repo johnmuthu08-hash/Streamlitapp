@@ -557,7 +557,7 @@ describe("Metric element", () => {
           }),
         ]),
         config: expect.objectContaining({
-          padding: { left: 0, right: 0, top: 2, bottom: 2 },
+          padding: { left: 0, right: 0, top: 8, bottom: 10 },
         }),
       })
     })
@@ -583,8 +583,18 @@ describe("Metric element", () => {
                 strokeCap: "round",
               }),
             }),
+            encoding: expect.objectContaining({
+              y: expect.objectContaining({
+                scale: expect.objectContaining({
+                  nice: true,
+                }),
+              }),
+            }),
           }),
         ]),
+        config: expect.objectContaining({
+          padding: { left: -3, right: -3, top: 8, bottom: 0 },
+        }),
       })
     })
 
