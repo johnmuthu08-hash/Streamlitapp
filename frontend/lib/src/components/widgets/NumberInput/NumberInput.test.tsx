@@ -1056,10 +1056,6 @@ describe("NumberInput widget", () => {
         const user = userEvent.setup()
         const props = getIntProps({ default: 10, min: 0, max: 50 })
 
-        // Mock reportValidity to track if it's called
-        const mockReportValidity = vi.fn()
-        HTMLInputElement.prototype.reportValidity = mockReportValidity
-
         render(<NumberInput {...props} />)
 
         const input = screen.getByTestId("stNumberInputField")
@@ -1067,12 +1063,9 @@ describe("NumberInput widget", () => {
         await user.type(input, "100") // Above max
         await user.keyboard("{enter}")
 
-        // Should not change the formatted value and call reportValidity
+        // Should not change the formatted value and should show error tooltip
         expect(input).toHaveDisplayValue("100") // Still shows the invalid input
-        expect(mockReportValidity).toHaveBeenCalled()
-
-        // Cleanup
-        HTMLInputElement.prototype.reportValidity = () => true
+        expect(screen.getByTestId("stTooltipErrorHoverTarget")).toBeVisible()
       })
 
       it.each([
@@ -1448,6 +1441,113 @@ describe("NumberInput widget", () => {
       await user.click(stepDownButton) // 0.51
 
       expect(input).toHaveValue(0.51)
+    })
+  })
+
+  describe("Range validation error display", () => {
+    it("shows error tooltip icon when value is below min", async () => {
+      const user = userEvent.setup()
+      const props = getIntProps({ min: 0, max: 100, default: 10 })
+      render(<NumberInput {...props} />)
+
+      const input = screen.getByTestId("stNumberInputField")
+      await user.clear(input)
+      await user.type(input, "-5")
+      await user.tab()
+
+      expect(screen.getByTestId("stTooltipErrorHoverTarget")).toBeVisible()
+    })
+
+    it("shows error tooltip icon when value exceeds max", async () => {
+      const user = userEvent.setup()
+      const props = getIntProps({ min: 0, max: 100, default: 10 })
+      render(<NumberInput {...props} />)
+
+      const input = screen.getByTestId("stNumberInputField")
+      await user.clear(input)
+      await user.type(input, "200")
+      await user.tab()
+
+      expect(screen.getByTestId("stTooltipErrorHoverTarget")).toBeVisible()
+    })
+
+    it("clears error when a valid value is entered", async () => {
+      const user = userEvent.setup()
+      const props = getIntProps({ min: 0, max: 100, default: 10 })
+      render(<NumberInput {...props} />)
+
+      const input = screen.getByTestId("stNumberInputField")
+      // First trigger an error
+      await user.clear(input)
+      await user.type(input, "200")
+      await user.tab()
+      expect(screen.getByTestId("stTooltipErrorHoverTarget")).toBeVisible()
+
+      // Now enter a valid value
+      await user.click(input)
+      await user.clear(input)
+      await user.type(input, "50")
+      await user.tab()
+
+      expect(
+        screen.queryByTestId("stTooltipErrorHoverTarget")
+      ).not.toBeInTheDocument()
+    })
+
+    it("does not show error for value within range", () => {
+      const props = getIntProps({ min: 0, max: 100, default: 50 })
+      render(<NumberInput {...props} />)
+
+      expect(
+        screen.queryByTestId("stTooltipErrorHoverTarget")
+      ).not.toBeInTheDocument()
+    })
+
+    it("clears error state when form is cleared", async () => {
+      const user = userEvent.setup()
+      const props = getIntProps({ min: 0, max: 100, default: 10 })
+      props.element.formId = "test-form"
+      props.widgetMgr.setFormSubmitBehaviors("test-form", true)
+      render(<NumberInput {...props} />)
+
+      const input = screen.getByTestId("stNumberInputField")
+      // Trigger an error
+      await user.clear(input)
+      await user.type(input, "200")
+      await user.tab()
+      expect(screen.getByTestId("stTooltipErrorHoverTarget")).toBeVisible()
+      expect(input).toHaveAttribute("aria-invalid", "true")
+
+      // Submit the form – this triggers onFormCleared
+      act(() => {
+        props.widgetMgr.submitForm("test-form", undefined)
+      })
+
+      // Error should be cleared
+      expect(
+        screen.queryByTestId("stTooltipErrorHoverTarget")
+      ).not.toBeInTheDocument()
+      const container = screen.getByTestId("stNumberInputContainer")
+      expect(container.className).not.toContain("error")
+      expect(input).not.toHaveAttribute("aria-invalid", "true")
+    })
+
+    it("sets aria-invalid when value is out of range", async () => {
+      const user = userEvent.setup()
+      const props = getIntProps({ min: 0, max: 100, default: 10 })
+      render(<NumberInput {...props} />)
+
+      const input = screen.getByTestId("stNumberInputField")
+      await user.clear(input)
+      await user.type(input, "200")
+      await user.tab()
+
+      expect(input).toHaveAttribute("aria-label", "Label")
+      // The container should have the error class
+      const container = screen.getByTestId("stNumberInputContainer")
+      expect(container.className).toContain("error")
+      // aria-invalid is set on the actual input element via Input override
+      expect(input).toHaveAttribute("aria-invalid", "true")
     })
   })
 })
