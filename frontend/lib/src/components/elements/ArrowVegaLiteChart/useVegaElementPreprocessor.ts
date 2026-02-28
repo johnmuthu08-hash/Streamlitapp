@@ -16,6 +16,8 @@
 
 import { useMemo } from "react"
 
+import { TopLevelSpec } from "vega-lite"
+
 import { useEmotionTheme } from "~lib/hooks/useEmotionTheme"
 import { EmotionTheme } from "~lib/theme"
 import { isNullOrUndefined } from "~lib/util/utils"
@@ -81,33 +83,30 @@ export function prepareSpecForSelections(spec: any): void {
   }
 }
 
-const generateSpec = (
-  inputSpec: string,
-  useContainerWidth: boolean,
-  useContainerHeight: boolean,
+/**
+ * Applies common spec preprocessing: normalizes sizing, applies theming,
+ * sets padding, validates datasets, prepares selections, and resolves colors.
+ */
+const applyCommonSpecProcessing = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: Replace 'any' with a more specific type.
+  spec: any,
   vegaLiteTheme: string,
   selectionMode: string[],
-  theme: EmotionTheme,
-  containerWidth: number,
-  containerHeight?: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: Replace 'any' with a more specific type.
-): any => {
-  const spec = JSON.parse(inputSpec)
-
+  theme: EmotionTheme
+): void => {
   // Normalize legacy "0"/non-positive sizing semantics: Historically, a
   // top-level width/height of 0 behaved like "unspecified" (Vega-Lite fell back
-  // to its default height/auto width). After
-  // https://github.com/vega/vega-lite/commit/0ff85059ef1c444b78218a36678fc2af7131a7aa
-  // a value of 0 is treated as an explicit size, which results in charts
-  // effectively rendering at 0px. To ensure charts render, treat non-positive
-  // numeric values as "no value" and let Vega-Lite apply its own defaults.
+  // to its default height/auto width). After a Vega-Lite change, a value of 0
+  // is treated as an explicit size, which results in charts rendering at 0px.
+  // To ensure charts render, treat non-positive numeric values as "no value".
   if (typeof spec.height === "number" && spec.height <= 0) {
     delete spec.height
   }
-
   if (typeof spec.width === "number" && spec.width <= 0) {
     delete spec.width
   }
+
+  // Apply theming
   if (vegaLiteTheme === "streamlit") {
     spec.config = applyStreamlitTheme(spec.config, theme)
   } else if (spec.usermeta?.embedOptions?.theme === "streamlit") {
@@ -119,6 +118,59 @@ const generateSpec = (
     spec.config = applyThemeDefaults(spec.config, theme)
   }
 
+  // Set default padding
+  if (!spec.padding) {
+    spec.padding = {}
+  }
+  if (isNullOrUndefined(spec.padding.bottom)) {
+    spec.padding.bottom = BOTTOM_PADDING
+  }
+
+  // Validate datasets
+  if (spec.datasets) {
+    throw new Error("Datasets should not be passed as part of the spec")
+  }
+
+  // Prepare selections if enabled
+  if (selectionMode.length > 0) {
+    prepareSpecForSelections(spec)
+  }
+
+  // Resolve built-in color names (red, blue, etc.) to theme color values
+  resolveNamedColorsInSpec(spec, theme)
+}
+
+/**
+ * Generates a base spec without container dimensions.
+ * This spec is stable and only changes when the actual chart structure changes,
+ * not when the container resizes. Dimensions are applied separately via the Vega
+ * view API for much better resize performance.
+ */
+const generateBaseSpec = (
+  inputSpec: string,
+  vegaLiteTheme: string,
+  selectionMode: string[],
+  theme: EmotionTheme
+): TopLevelSpec => {
+  const spec = JSON.parse(inputSpec)
+  applyCommonSpecProcessing(spec, vegaLiteTheme, selectionMode, theme)
+  return spec
+}
+
+const generateSpec = (
+  inputSpec: string,
+  useContainerWidth: boolean,
+  useContainerHeight: boolean,
+  vegaLiteTheme: string,
+  selectionMode: string[],
+  theme: EmotionTheme,
+  containerWidth: number,
+  containerHeight?: number
+): TopLevelSpec => {
+  const spec = JSON.parse(inputSpec)
+  applyCommonSpecProcessing(spec, vegaLiteTheme, selectionMode, theme)
+
+  // Apply title limit based on container width
   if (spec.title) {
     if (typeof spec.title === "string") {
       spec.title = { text: spec.title }
@@ -135,9 +187,7 @@ const generateSpec = (
 
   // Only apply a container-derived height when we have a positive measurement.
   // `containerHeight` is -1 until the ResizeObserver has measured the element
-  // and we also avoid writing 0, since Vega-Lite now treats 0 as an explicit
-  // size.
-  // @see https://github.com/vega/vega-lite/commit/0ff85059ef1c444b78218a36678fc2af7131a7aa
+  // and we also avoid writing 0, since Vega-Lite now treats 0 as an explicit size.
   if (useContainerHeight && containerHeight && containerHeight > 0) {
     spec.height = containerHeight
   }
@@ -175,25 +225,6 @@ const generateSpec = (
     }
   }
 
-  if (!spec.padding) {
-    spec.padding = {}
-  }
-
-  if (isNullOrUndefined(spec.padding.bottom)) {
-    spec.padding.bottom = BOTTOM_PADDING
-  }
-
-  if (spec.datasets) {
-    throw new Error("Datasets should not be passed as part of the spec")
-  }
-
-  if (selectionMode.length > 0) {
-    prepareSpecForSelections(spec)
-  }
-
-  // Resolve built-in color names (red, blue, etc.) to theme color values
-  resolveNamedColorsInSpec(spec, theme)
-
   return spec
 }
 
@@ -201,6 +232,8 @@ const generateSpec = (
  * Preprocesses the element to generate the VegaLite spec.
  * It stabilizes some of the references (e.g. selectionMode and spec)
  * and avoids further processing if unnecessary.
+ *
+ * Returns separate spec and dimensions to allow resizing without view recreation.
  */
 export const useVegaElementPreprocessor = (
   element: VegaLiteChartElement,
@@ -208,7 +241,15 @@ export const useVegaElementPreprocessor = (
   containerHeight: number,
   useContainerWidth: boolean,
   useContainerHeight: boolean
-): VegaLiteChartElement => {
+): Omit<VegaLiteChartElement, "spec"> & {
+  // Dimensions exposed separately for efficient resize operations
+  chartWidth: number
+  chartHeight: number | undefined
+  // Processed spec (parsed from the input JSON string)
+  spec: TopLevelSpec
+  // Base spec without dimensions for stable view creation
+  baseSpec: TopLevelSpec
+} => {
   const theme = useEmotionTheme()
 
   const {
@@ -229,6 +270,14 @@ export const useVegaElementPreprocessor = (
     // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: Update to match React best practices
   }, [JSON.stringify(inputSelectionMode)])
 
+  // Generate a base spec that is stable across resize events.
+  // This prevents expensive view recreation on every resize.
+  const baseSpec = useMemo(
+    () => generateBaseSpec(inputSpec, vegaLiteTheme, selectionMode, theme),
+    [inputSpec, vegaLiteTheme, selectionMode, theme]
+  )
+
+  // Generate the full spec with dimensions (for backwards compatibility)
   const spec = useMemo(
     () =>
       generateSpec(
@@ -253,14 +302,23 @@ export const useVegaElementPreprocessor = (
     ]
   )
 
+  // Calculate the target chart dimensions for the resize API
+  const chartWidth =
+    useContainerWidth && containerWidth > 0 ? containerWidth : 0
+  const chartHeight =
+    useContainerHeight && containerHeight > 0 ? containerHeight : undefined
+
   return {
     id,
     formId,
     vegaLiteTheme,
     spec,
+    baseSpec,
     selectionMode,
     data,
     datasets,
     useContainerWidth,
+    chartWidth,
+    chartHeight,
   }
 }
