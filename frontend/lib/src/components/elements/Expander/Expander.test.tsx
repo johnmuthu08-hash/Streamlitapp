@@ -32,6 +32,7 @@ const getProps = (
   element: BlockProto.Expandable.create({
     label: "hi",
     expanded: true,
+    type: BlockProto.Expandable.Type.NORMAL, // Default to normal mode (matches Python default)
     ...elementProps,
   }),
   isStale: false,
@@ -307,5 +308,69 @@ describe("widget mode (widgetMgr + element.id)", () => {
 
     const expander = screen.getByTestId("stExpander")
     expect(expander.className).not.toContain("st-key-")
+  })
+})
+
+describe("compact mode (type=COMPACT)", () => {
+  it("renders compact expander expanded with content visible", () => {
+    const props = getProps({
+      expanded: true,
+      type: BlockProto.Expandable.Type.COMPACT,
+    })
+    render(
+      <Expander {...props}>
+        <div>test content</div>
+      </Expander>
+    )
+    expect(screen.getByText("test content")).toBeVisible()
+  })
+
+  it("renders compact expander collapsed with content hidden", () => {
+    const props = getProps({
+      expanded: false,
+      type: BlockProto.Expandable.Type.COMPACT,
+    })
+    render(
+      <Expander {...props}>
+        <div>test content</div>
+      </Expander>
+    )
+    expect(screen.getByText("test content")).not.toBeVisible()
+  })
+
+  it("expands and collapses compact expander when clicking", async () => {
+    const user = userEvent.setup()
+    const props = getProps({
+      expanded: false,
+      type: BlockProto.Expandable.Type.COMPACT,
+    })
+    render(
+      <Expander {...props}>
+        <div>test</div>
+      </Expander>
+    )
+
+    // Click to expand
+    await user.click(screen.getByText("hi"))
+    expect(screen.getByText("test")).toBeVisible()
+
+    // Click to collapse - verify via inert attribute (more reliable than visibility in jsdom)
+    await user.click(screen.getByText("hi"))
+    const panel = screen.getByTestId("stExpanderDetails")
+    expect(panel).toHaveAttribute("inert")
+  })
+
+  it("renders compact expander with icon", () => {
+    const props = getProps({
+      icon: ":material/psychology:",
+      type: BlockProto.Expandable.Type.COMPACT,
+    })
+    render(
+      <Expander {...props}>
+        <div>test</div>
+      </Expander>
+    )
+    expect(screen.getByTestId("stExpanderIcon")).toBeVisible()
+    expect(screen.getByText("psychology")).toBeVisible()
   })
 })

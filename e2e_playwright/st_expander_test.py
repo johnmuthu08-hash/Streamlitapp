@@ -21,7 +21,7 @@ from e2e_playwright.shared.app_utils import check_top_level_class, get_expander
 
 EXPANDER_HEADER_IDENTIFIER = "summary"
 
-NUMBER_OF_EXPANDERS: Final = 21
+NUMBER_OF_EXPANDERS: Final = 22
 
 
 def test_expander_displays_correctly(
@@ -46,7 +46,12 @@ def test_expander_displays_correctly(
     assert_snapshot(expander_elements.nth(9), name="st_expander-nested")
     assert_snapshot(expander_elements.nth(11), name="st_expander-fixed_width")
     assert_snapshot(expander_elements.nth(12), name="st_expander-stretch_width")
-    assert_snapshot(expander_elements.nth(14), name="st_expander-with_code_block")
+    # Compact (type="compact") expander snapshots
+    assert_snapshot(expander_elements.nth(14), name="st_expander-compact_collapsed")
+    assert_snapshot(expander_elements.nth(15), name="st_expander-compact_expanded")
+    assert_snapshot(expander_elements.nth(16), name="st_expander-compact_with_icon")
+
+    assert_snapshot(expander_elements.nth(17), name="st_expander-with_code_block")
 
 
 def test_expander_collapses_and_expands(app: Page):
@@ -329,6 +334,42 @@ def test_expander_ignore_mode_does_not_trigger_rerun(app: Page):
 
     # Still no rerun
     expect(rerun_text).to_have_text(initial_count or "")
+
+
+def test_compact_expander_collapses_and_expands(app: Page):
+    """Test that a compact (type='compact') expander collapses and expands."""
+    # Compact expanded starts open
+    compact_expanded = get_expander(app, "Compact expanded")
+    expect(
+        compact_expanded.get_by_text("Compact content with no border")
+    ).to_be_visible()
+
+    # Click to collapse
+    compact_expanded.locator(EXPANDER_HEADER_IDENTIFIER).click()
+    expect(
+        compact_expanded.get_by_text("Compact content with no border")
+    ).not_to_be_visible()
+
+    # Click to expand again
+    compact_expanded.locator(EXPANDER_HEADER_IDENTIFIER).click()
+    expect(
+        compact_expanded.get_by_text("Compact content with no border")
+    ).to_be_visible()
+
+
+def test_compact_expander_hover_states(
+    themed_app: Page, assert_snapshot: ImageCompareFunction
+):
+    """Test that compact expander hover states render correctly via snapshots."""
+    # Test hover on compact collapsed expander
+    compact_expander = get_expander(themed_app, "Compact collapsed")
+    compact_expander.locator("summary").hover()
+    assert_snapshot(compact_expander, name="st_expander-compact_collapsed_hover")
+
+    # Test hover on compact expanded expander
+    compact_expanded = get_expander(themed_app, "Compact expanded")
+    compact_expanded.locator("summary").hover()
+    assert_snapshot(compact_expanded, name="st_expander-compact_expanded_hover")
 
 
 def test_expander_callback_fires_on_toggle(app: Page):

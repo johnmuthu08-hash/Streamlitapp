@@ -89,7 +89,7 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
   fragmentId,
   children,
 }): ReactElement => {
-  const { label, icon } = element
+  const { label, icon, type } = element
   const [isHovered, setIsHovered] = useState(false)
 
   // element.id is only set when the backend registers the expander as a
@@ -120,10 +120,6 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
       onToggle: isWidget ? handleWidgetToggle : undefined,
     })
 
-  // Determine which icon to show
-  const showChevron = !icon || isHovered
-  const showUserIcon = icon && !isHovered
-
   const handleMouseEnter = (): void => {
     setIsHovered(true)
   }
@@ -134,6 +130,16 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
 
   const userKey = getKeyFromId(blockId)
 
+  // For compact mode (type=COMPACT), chevron is trailing (after label)
+  // For normal mode, chevron is leading (before label)
+  const isCompact = type === BlockProto.Expandable.Type.COMPACT
+
+  // Determine which icon to show (leading position)
+  // In normal mode: show chevron when no icon or hovering, show user icon otherwise
+  // In compact mode: always show user icon if present (chevron moves to trailing)
+  const showLeadingChevron = !isCompact && (!icon || isHovered)
+  const showLeadingUserIcon = isCompact ? Boolean(icon) : icon && !isHovered
+
   return (
     <StyledExpandableContainer
       className={classNames("stExpander", convertKeyToClassName(userKey))}
@@ -141,6 +147,7 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
     >
       <StyledDetails
         isStale={isStale}
+        isCompact={isCompact}
         ref={detailsRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -150,9 +157,10 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
           ref={summaryRef}
           isStale={isStale}
           expanded={isOpen}
+          isCompact={isCompact}
         >
           <StyledSummaryHeading>
-            {showChevron && (
+            {showLeadingChevron && (
               <DynamicIcon
                 iconValue={
                   isOpen
@@ -162,9 +170,9 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
                 size="lg"
               />
             )}
-            {showUserIcon && <ExpanderIcon icon={icon} />}
+            {showLeadingUserIcon && <ExpanderIcon icon={icon} />}
 
-            <StyledSummaryLabelWrapper>
+            <StyledSummaryLabelWrapper compact={isCompact}>
               <StreamlitMarkdown
                 source={label}
                 allowHTML={false}
@@ -172,11 +180,24 @@ const Expander: React.FC<React.PropsWithChildren<ExpanderProps>> = ({
                 largerLabel
               />
             </StyledSummaryLabelWrapper>
+
+            {/* Trailing chevron for compact mode - positioned directly after label */}
+            {isCompact && (
+              <DynamicIcon
+                iconValue={
+                  isOpen
+                    ? ":material/keyboard_arrow_down:"
+                    : ":material/chevron_right:"
+                }
+                size="lg"
+              />
+            )}
           </StyledSummaryHeading>
         </StyledSummary>
         <StyledDetailsPanel
           data-testid="stExpanderDetails"
           ref={contentRef}
+          isCompact={isCompact}
           // Exclude collapsed content from browser find-in-page (Cmd+F) searches.
           // Using "" instead of true for consistent behavior in jsdom tests.
           inert={!isOpen ? "" : undefined}
