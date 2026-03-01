@@ -39,7 +39,7 @@ INSTALL_REQUIRES = [
     "cachetools>=4.0, <7",
     "click>=7.0, <9",
     "numpy>=1.23, <3",
-    "packaging>=20, <26",
+    "packaging>=20, <27",
     # Pandas <1.4 has a bug related to deleting columns in a DataFrame changing
     # the index dtype.
     "pandas>=1.4.0, <3",
